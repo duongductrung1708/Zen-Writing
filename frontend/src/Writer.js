@@ -428,29 +428,77 @@ const ImageCard = ({
   );
 };
 
-// Masonry layout helper - calculates positions based on actual image sizes
+// Random layout helper - calculates random positions with collision detection
 const calculateMasonryLayout = (images, imageSizes) => {
-  const positions = [];
-  const columns = [0, 0, 0]; // Track height of each column
-  const columnWidth = 320; // Base column width
-  const gap = 20; // Gap between images
-  const startX = 50;
-  const startY = 50;
+  const positions = new Array(images.length);
+  const placedRects = []; // Track placed rectangles for collision detection
+  const gap = 20; // Minimum gap between images
+  let canvasWidth = 1200; // Canvas width for random placement
+  let canvasHeight = 2000; // Canvas height for random placement
+  const maxAttempts = 200; // Increased attempts to find a non-overlapping position
 
-  images.forEach((image, index) => {
-    const size = imageSizes[index] || { width: 300, height: 400 };
+  // Sort images by area (largest first) for better placement, but keep original index
+  const imagesWithSizes = images.map((image, index) => ({
+    image,
+    originalIndex: index,
+    size: imageSizes[index] || { width: 300, height: 400 },
+    area: (imageSizes[index]?.width || 300) * (imageSizes[index]?.height || 400),
+  })).sort((a, b) => b.area - a.area);
 
-    // Find the shortest column
-    const shortestColumnIndex = columns.indexOf(Math.min(...columns));
+  // Helper function to check collision with proper gap
+  const checkCollision = (x, y, width, height, rects) => {
+    return rects.some((rect) => {
+      // Check if rectangles overlap (with gap)
+      const hasHorizontalOverlap = !(x + width + gap <= rect.x || x >= rect.x + rect.width + gap);
+      const hasVerticalOverlap = !(y + height + gap <= rect.y || y >= rect.y + rect.height + gap);
+      return hasHorizontalOverlap && hasVerticalOverlap;
+    });
+  };
 
-    // Calculate position
-    const x = startX + shortestColumnIndex * (columnWidth + gap);
-    const y = startY + columns[shortestColumnIndex];
+  // Helper function to find a random position
+  const findRandomPosition = (width, height) => {
+    let attempts = 0;
+    while (attempts < maxAttempts) {
+      const x = Math.random() * (canvasWidth - width - gap * 2) + gap;
+      const y = Math.random() * (canvasHeight - height - gap * 2) + gap;
 
-    positions.push({ x, y });
+      if (!checkCollision(x, y, width, height, placedRects)) {
+        return { x, y };
+      }
+      attempts++;
+    }
+    
+    // Fallback: Try grid-based placement if random fails
+    const gridSize = 50;
+    for (let gridY = gap; gridY < canvasHeight - height - gap; gridY += gridSize) {
+      for (let gridX = gap; gridX < canvasWidth - width - gap; gridX += gridSize) {
+        if (!checkCollision(gridX, gridY, width, height, placedRects)) {
+          return { x: gridX, y: gridY };
+        }
+      }
+    }
+    
+    // Last resort: Expand canvas and place at bottom
+    const newY = canvasHeight + gap;
+    canvasHeight = newY + height + gap;
+    return { x: gap, y: newY };
+  };
 
-    // Update column height
-    columns[shortestColumnIndex] += size.height + gap;
+  // Place images (sorted by size for better collision avoidance)
+  imagesWithSizes.forEach((item) => {
+    const { size, originalIndex } = item;
+    const position = findRandomPosition(size.width, size.height);
+
+    // Store position at original index to maintain order
+    positions[originalIndex] = { x: position.x, y: position.y };
+
+    // Add to placed rectangles for collision detection
+    placedRects.push({
+      x: position.x,
+      y: position.y,
+      width: size.width,
+      height: size.height,
+    });
   });
 
   return positions;
@@ -1258,7 +1306,7 @@ function Writer() {
       setIsSearching(true);
 
       try {
-        // Search for all keywords in parallel
+        // Search for all keywords in parallel - only get 1 random image per keyword
         const searchPromises = keywords.map(async (keyword) => {
           try {
             console.log(`Fetching images for keyword: ${keyword}`);
@@ -1268,11 +1316,14 @@ function Writer() {
             console.log(`Response for ${keyword}:`, response.data);
             if (response.data.images && response.data.images.length > 0) {
               const keywordColor = getKeywordColor(keyword);
-              return response.data.images.map((img) => ({
-                ...img,
+              // Pick a random image from the results
+              const randomIndex = Math.floor(Math.random() * response.data.images.length);
+              const randomImage = response.data.images[randomIndex];
+              return [{
+                ...randomImage,
                 keyword,
                 keywordColor,
-              }));
+              }];
             }
             return [];
           } catch (error) {
@@ -1592,7 +1643,7 @@ function Writer() {
                       >
                         Popular texts you can explore:
                       </p>
-                      <ul className="space-y-2">
+                      <ul className="space-y-2" style={{ marginTop: "1rem", listStyleType: "circle", marginLeft: "1rem" }}>
                         <li>
                           <button
                             type="button"
