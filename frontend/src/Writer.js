@@ -33,7 +33,7 @@ const Notification = ({ message, type = "info" }) => {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className={`fixed top-4 right-4 px-4 py-2 rounded-md text-sm ${
+      className={`fixed top-4 right-4 left-4 sm:left-auto sm:right-4 px-4 py-2 rounded-md text-sm ${
         type === "error"
           ? "bg-red-100 text-red-800"
           : "bg-gray-100 text-gray-800"
@@ -432,7 +432,10 @@ const calculateMasonryLayout = (images, imageSizes) => {
   const positions = new Array(images.length);
   const placedRects = []; // Track placed rectangles for collision detection
   const gap = 20; // Minimum gap between images
-  let canvasWidth = 1200; // Canvas width for random placement
+  // Responsive canvas width based on screen size
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  const isTablet = typeof window !== 'undefined' && window.innerWidth < 768;
+  let canvasWidth = isMobile ? 400 : isTablet ? 600 : 1200; // Canvas width for random placement
   let canvasHeight = 2000; // Canvas height for random placement
   const maxAttempts = 200; // Increased attempts to find a non-overlapping position
 
@@ -747,7 +750,7 @@ const HighlightedTextEditor = ({
       onCompositionStart={handleCompositionStart}
       onCompositionEnd={handleCompositionEnd}
       onClick={handleClick}
-      className="w-full h-full text-base leading-relaxed placeholder-gray-400 transition-colors bg-transparent border-none outline-none resize-none text-charcoal font-modern md:text-lg lg:text-xl focus:placeholder-gray-300"
+      className="w-full h-full text-sm leading-relaxed placeholder-gray-400 transition-colors bg-transparent border-none outline-none resize-none sm:text-base text-charcoal font-modern md:text-lg lg:text-xl focus:placeholder-gray-300"
       style={{
         fontFamily:
           '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
@@ -919,12 +922,12 @@ const PDFPreview = ({ text, images, onClose, onDownload }) => {
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col m-4"
+        className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col m-2 sm:m-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-charcoal">PDF Preview</h2>
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 sm:p-6">
+          <h2 className="text-lg font-semibold sm:text-xl text-charcoal">PDF Preview</h2>
           <button
             onClick={onClose}
             className="text-gray-400 transition-colors hover:text-gray-600"
@@ -937,9 +940,9 @@ const PDFPreview = ({ text, images, onClose, onDownload }) => {
         {/* Preview Content */}
         <div
           ref={previewRef}
-          className="flex-1 p-8 overflow-y-auto bg-ivory custom-scrollbar"
+          className="flex-1 p-4 overflow-y-auto sm:p-6 md:p-8 bg-ivory custom-scrollbar"
         >
-          <div className="max-w-2xl mx-auto space-y-6">
+          <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
             {/* Text Preview */}
             {text.trim() && (
               <div className="p-6 bg-white rounded-lg shadow-sm">
@@ -964,7 +967,7 @@ const PDFPreview = ({ text, images, onClose, onDownload }) => {
                 <h3 className="text-sm font-semibold tracking-wider text-gray-500 uppercase">
                   Images ({images.length})
                 </h3>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                   {images.map((image, index) => (
                     <div
                       key={image.id}
@@ -998,17 +1001,17 @@ const PDFPreview = ({ text, images, onClose, onDownload }) => {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
+        <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-200 sm:gap-3 sm:p-6">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-600 transition-colors hover:text-gray-900"
+            className="px-3 py-2 text-sm text-gray-600 transition-colors sm:text-base hover:text-gray-900"
           >
             Cancel
           </button>
           <button
             onClick={handleDownloadPDF}
             disabled={isGenerating || (!text.trim() && images.length === 0)}
-            className="flex items-center gap-2 px-6 py-2 text-white transition-colors rounded bg-charcoal hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2 text-sm sm:text-base text-white transition-colors rounded bg-charcoal hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGenerating ? (
               <>
@@ -1056,10 +1059,10 @@ const ImageViewer = ({
         animate={{ x: 0 }}
         exit={{ x: "-100%" }}
         transition={{ type: "spring", damping: 30, stiffness: 300 }}
-        className="w-full overflow-y-auto bg-white shadow-2xl pointer-events-auto md:w-96 custom-scrollbar"
+        className="w-full max-h-screen overflow-y-auto bg-white shadow-2xl pointer-events-auto md:w-96 custom-scrollbar"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 md:p-8">
+        <div className="p-4 sm:p-6 md:p-8">
           {/* Close button */}
           <button
             onClick={onClose}
@@ -1255,7 +1258,7 @@ const ImageViewer = ({
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "spring", damping: 30, stiffness: 300 }}
-        className="flex items-center justify-center flex-1 p-8 pointer-events-auto bg-ivory/95 backdrop-blur-sm"
+        className="flex items-center justify-center flex-1 p-4 pointer-events-auto sm:p-6 md:p-8 bg-ivory/95 backdrop-blur-sm"
         onClick={(e) => e.stopPropagation()}
       >
         <motion.img
@@ -1555,13 +1558,13 @@ function Writer() {
       {/* Left Side - Editor */}
       <div className="flex flex-col w-full border-b border-gray-200 md:w-1/2 md:border-b-0 md:border-r">
         {/* Header Bar */}
-        <div className="flex items-center justify-between px-8 pt-8 pb-4 md:px-12 lg:px-12 md:pt-12 lg:pt-12">
+        <div className="flex items-center justify-between px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4 md:px-12 lg:px-12 md:pt-12 lg:pt-12 md:pb-4">
           {/* Logo */}
           <div className="flex-shrink-0">
             <img
               src="/assets/zen_logo.png"
               alt="Zen Writing Logo"
-              className="object-contain w-5 h-5 md:h-6 md:w-6"
+              className="object-contain w-4 h-4 sm:w-5 sm:h-5 md:h-6 md:w-6"
             />
           </div>
 
@@ -1572,9 +1575,9 @@ function Writer() {
                 type="button"
                 tabIndex={1}
                 onClick={() => setShowExamples((prev) => !prev)}
-                className="group inline-flex flex-col items-center gap-1 text-[11px] tracking-[0.25em] uppercase text-gray-600"
+                className="group inline-flex flex-col items-center gap-0.5 sm:gap-1 text-[10px] sm:text-[11px] tracking-[0.25em] uppercase text-gray-600"
               >
-                <span className="font-semibold" style={{ fontSize: "0.8rem" }}>
+                <span className="font-semibold text-[0.7rem] sm:text-[0.8rem]">
                   Examples
                 </span>
                 <span className="relative w-full h-px overflow-hidden bg-gray-200">
@@ -1590,9 +1593,9 @@ function Writer() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute top-full left-1/2 transform -translate-x-[60%] mt-2 bg-white rounded-lg shadow-xl border border-gray-200 w-96 max-h-[60vh] overflow-y-auto custom-scrollbar z-50"
+                    className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 w-[calc(100vw-2rem)] max-w-96 sm:w-96 max-h-[60vh] overflow-y-auto custom-scrollbar z-50"
                   >
-                    <div className="p-4 space-y-3 text-sm text-gray-700">
+                    <div className="p-3 space-y-2 text-xs text-gray-700 sm:p-4 sm:space-y-3 sm:text-sm">
                       <button
                         type="button"
                         tabIndex={-1}
@@ -1602,14 +1605,13 @@ function Writer() {
                           );
                           setShowExamples(false);
                         }}
-                        className="underline transition-colors underline-offset-4 decoration-gray-400 hover:decoration-gray-700 hover:text-red-600"
+                        className="text-sm underline transition-colors underline-offset-4 decoration-gray-400 hover:decoration-gray-700 hover:text-red-600 sm:text-lg"
                         style={{
                           textDecoration: "none",
                           textAlign: "center",
                           display: "block",
                           margin: "0 auto",
-                          fontSize: "1.2rem",
-                          marginTop: "1rem",
+                          marginTop: "0.75rem",
                         }}
                       >
                         Give me a writing prompt
@@ -1705,12 +1707,12 @@ function Writer() {
               className="text-gray-600 transition-colors hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed"
               title="Download PDF"
             >
-              <Download className="w-5 h-5 md:h-6 md:w-6" />
+              <Download className="w-4 h-4 sm:w-5 sm:h-5 md:h-6 md:w-6" />
             </button>
           </div>
         </div>
 
-        <div className="flex-1 px-8 pb-8 md:px-12 lg:px-12 md:pb-12 lg:pb-12">
+        <div className="flex-1 px-4 pb-6 sm:px-6 sm:pb-8 md:px-12 lg:px-12 md:pb-12 lg:pb-12">
           {/* Main editor */}
           <div className="h-full">
             <HighlightedTextEditor
@@ -1727,9 +1729,9 @@ function Writer() {
       {/* Right Side - Gallery */}
       <div
         ref={galleryContainerRef}
-        className="relative w-full bg-white md:w-1/2 md:sticky md:top-0 md:h-screen"
+        className="relative w-full bg-white md:w-1/2 md:sticky md:top-0 md:h-screen min-h-[400px] sm:min-h-[500px]"
       >
-        <div className="absolute inset-0 p-4 overflow-hidden custom-scrollbar md:p-6 lg:p-8">
+        <div className="absolute inset-0 p-3 overflow-hidden sm:p-4 custom-scrollbar md:p-6 lg:p-8">
           {images.length === 0 && !isSearching && text.length === 0 && (
             <EmptyState />
           )}
@@ -1774,7 +1776,7 @@ function Writer() {
         </div>
 
         {/* Ruler at bottom right corner */}
-        <div className="absolute z-10 bottom-4 right-4">
+        <div className="absolute z-10 hidden bottom-2 right-2 sm:bottom-4 sm:right-4 sm:block">
           <Ruler scale={panScale} />
         </div>
       </div>
