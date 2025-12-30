@@ -322,7 +322,6 @@ const ImageCard = ({
         }
       };
       img.onerror = () => {
-        console.error(`Failed to load image: ${image.url}`);
         // Use default size if image fails to load
         if (onSizeLoad) {
           onSizeLoad(image.id, { width: 300, height: 400 });
@@ -805,7 +804,6 @@ const PDFPreview = ({ text, images, onClose, onDownload }) => {
                   download_location: image.download_location,
                 });
               } catch (error) {
-                console.error(`Error tracking download for image ${i}:`, error);
                 // Continue even if tracking fails
               }
             }
@@ -891,7 +889,6 @@ const PDFPreview = ({ text, images, onClose, onDownload }) => {
             yPos = currentYPos + 5;
             pdf.setTextColor(0, 0, 0);
           } catch (error) {
-            console.error(`Error loading image ${i}:`, error);
             // Continue with next image
           }
         }
@@ -904,7 +901,6 @@ const PDFPreview = ({ text, images, onClose, onDownload }) => {
       pdf.save(fileName);
       onClose();
     } catch (error) {
-      console.error("Error generating PDF:", error);
       alert("Failed to generate PDF. Please try again.");
     } finally {
       setIsGenerating(false);
@@ -1302,18 +1298,15 @@ function Writer() {
         return;
       }
 
-      console.log("Searching for keywords:", keywords);
       setIsSearching(true);
 
       try {
         // Search for all keywords in parallel - only get 1 random image per keyword
         const searchPromises = keywords.map(async (keyword) => {
           try {
-            console.log(`Fetching images for keyword: ${keyword}`);
             const response = await axios.get(`${API_BASE_URL}/api/images`, {
               params: { keyword },
             });
-            console.log(`Response for ${keyword}:`, response.data);
             if (response.data.images && response.data.images.length > 0) {
               const keywordColor = getKeywordColor(keyword);
               // Pick a random image from the results
@@ -1327,17 +1320,12 @@ function Writer() {
             }
             return [];
           } catch (error) {
-            console.error(
-              `Error fetching images for keyword "${keyword}":`,
-              error
-            );
             return [];
           }
         });
 
         const results = await Promise.all(searchPromises);
         const allImages = results.flat();
-        console.log("All images fetched:", allImages.length);
 
         if (allImages.length > 0) {
           // Remove duplicate images based on image.id
@@ -1348,10 +1336,6 @@ function Writer() {
             }
           });
           const uniqueImages = Array.from(uniqueImagesMap.values());
-          console.log(
-            "Unique images after deduplication:",
-            uniqueImages.length
-          );
 
           setImages(uniqueImages);
           // Reset image sizes and positions when new images are loaded
@@ -1381,7 +1365,6 @@ function Writer() {
           setTimeout(() => setNotification(null), 3000);
         }
       } catch (error) {
-        console.error("Error fetching images:", error);
         setNotification({
           message: error.response?.data?.error || "Failed to fetch images",
           type: "error",

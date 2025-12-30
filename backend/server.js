@@ -53,9 +53,8 @@ app.get('/api/images', async (req, res) => {
         download_location: photo.links?.download_location || null, // Required for download tracking
       };
       
-      // Log to debug if profile is missing
+      // Use username to construct profile URL if missing
       if (!imageData.photographer_profile && imageData.photographer_username) {
-        console.log('Missing profile URL, using username:', imageData.photographer_username);
         imageData.photographer_profile = `https://unsplash.com/@${imageData.photographer_username}`;
       }
       
@@ -64,17 +63,9 @@ app.get('/api/images', async (req, res) => {
 
     res.json({ images: sanitizedImages });
   } catch (error) {
-    console.error('Error fetching images from Unsplash:', error.message);
-    
     if (error.response) {
       const status = error.response.status;
       const errorData = error.response.data;
-      
-      console.error('Unsplash API Error Details:', {
-        status,
-        data: errorData,
-        headers: error.response.headers,
-      });
       
       // Provide more specific error messages
       let errorMessage = 'Failed to fetch images from Unsplash';
@@ -122,8 +113,6 @@ app.post('/api/track-download', async (req, res) => {
 
     res.json({ success: true, data: response.data });
   } catch (error) {
-    console.error('Error tracking download:', error.message);
-    
     if (error.response) {
       return res.status(error.response.status).json({
         error: 'Failed to track download',
