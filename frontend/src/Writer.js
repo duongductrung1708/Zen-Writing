@@ -1892,7 +1892,7 @@ function Writer() {
       {/* Right Side - Gallery */}
       <div
         ref={galleryContainerRef}
-        className="relative w-full bg-white md:w-1/2 md:sticky md:top-0 md:h-screen min-h-[400px] sm:min-h-[500px]"
+        className="relative w-full bg-white md:w-1/2 md:sticky md:top-0 md:h-screen min-h-[600px] sm:min-h-[700px]"
       >
         <div className="absolute inset-0 p-3 overflow-hidden sm:p-4 custom-scrollbar md:p-6 lg:p-8">
           {images.length === 0 && !isSearching && text.length === 0 && (
