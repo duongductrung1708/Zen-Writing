@@ -207,6 +207,9 @@ const PanZoomContainer = ({
   const containerRef = useRef(null);
   const [isPanning, setIsPanning] = useState(false);
   const lastPanPointRef = useRef({ x: 0, y: 0 });
+  const lastTouchDistanceRef = useRef(0);
+  const lastTouchCenterRef = useRef({ x: 0, y: 0 });
+  const initialScaleRef = useRef(1);
 
   const handleWheel = useCallback(
     (e) => {
@@ -244,6 +247,94 @@ const PanZoomContainer = ({
     setIsPanning(false);
   }, []);
 
+  // Touch event handlers for mobile
+  const getTouchDistance = (touch1, touch2) => {
+    const dx = touch2.clientX - touch1.clientX;
+    const dy = touch2.clientY - touch1.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const getTouchCenter = (touch1, touch2) => {
+    return {
+      x: (touch1.clientX + touch2.clientX) / 2,
+      y: (touch1.clientY + touch2.clientY) / 2,
+    };
+  };
+
+  const handleTouchStart = useCallback(
+    (e) => {
+      if (e.touches.length === 1) {
+        // Single touch - start panning
+        setIsPanning(true);
+        lastPanPointRef.current = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY,
+        };
+      } else if (e.touches.length === 2) {
+        // Two touches - prepare for pinch zoom
+        setIsPanning(false);
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        lastTouchDistanceRef.current = getTouchDistance(touch1, touch2);
+        lastTouchCenterRef.current = getTouchCenter(touch1, touch2);
+        initialScaleRef.current = scale;
+      }
+    },
+    [scale]
+  );
+
+  const handleTouchMove = useCallback(
+    (e) => {
+      e.preventDefault();
+      if (e.touches.length === 1 && isPanning) {
+        // Single touch - panning
+        const deltaX = e.touches[0].clientX - lastPanPointRef.current.x;
+        const deltaY = e.touches[0].clientY - lastPanPointRef.current.y;
+        setPosition((prevPos) => ({
+          x: prevPos.x + deltaX,
+          y: prevPos.y + deltaY,
+        }));
+        lastPanPointRef.current = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY,
+        };
+      } else if (e.touches.length === 2) {
+        // Two touches - pinch zoom
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const currentDistance = getTouchDistance(touch1, touch2);
+        const currentCenter = getTouchCenter(touch1, touch2);
+
+        if (lastTouchDistanceRef.current > 0) {
+          const scaleChange =
+            currentDistance / lastTouchDistanceRef.current;
+          const newScale = Math.min(
+            Math.max(0.5, initialScaleRef.current * scaleChange),
+            3
+          );
+          setScale(newScale);
+
+          // Adjust position to zoom towards touch center
+          const centerDeltaX = currentCenter.x - lastTouchCenterRef.current.x;
+          const centerDeltaY = currentCenter.y - lastTouchCenterRef.current.y;
+          setPosition((prevPos) => ({
+            x: prevPos.x + centerDeltaX,
+            y: prevPos.y + centerDeltaY,
+          }));
+        }
+
+        lastTouchDistanceRef.current = currentDistance;
+        lastTouchCenterRef.current = currentCenter;
+      }
+    },
+    [isPanning, setPosition, setScale]
+  );
+
+  const handleTouchEnd = useCallback(() => {
+    setIsPanning(false);
+    lastTouchDistanceRef.current = 0;
+  }, []);
+
   useEffect(() => {
     const container = containerRef.current;
     if (container) {
@@ -251,15 +342,34 @@ const PanZoomContainer = ({
       container.addEventListener("mousemove", handleMouseMove);
       container.addEventListener("mouseup", handleMouseUp);
       container.addEventListener("mouseleave", handleMouseUp);
+      container.addEventListener("touchstart", handleTouchStart, {
+        passive: false,
+      });
+      container.addEventListener("touchmove", handleTouchMove, {
+        passive: false,
+      });
+      container.addEventListener("touchend", handleTouchEnd);
+      container.addEventListener("touchcancel", handleTouchEnd);
 
       return () => {
         container.removeEventListener("wheel", handleWheel);
         container.removeEventListener("mousemove", handleMouseMove);
         container.removeEventListener("mouseup", handleMouseUp);
         container.removeEventListener("mouseleave", handleMouseUp);
+        container.removeEventListener("touchstart", handleTouchStart);
+        container.removeEventListener("touchmove", handleTouchMove);
+        container.removeEventListener("touchend", handleTouchEnd);
+        container.removeEventListener("touchcancel", handleTouchEnd);
       };
     }
-  }, [handleWheel, handleMouseMove, handleMouseUp]);
+  }, [
+    handleWheel,
+    handleMouseMove,
+    handleMouseUp,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+  ]);
 
   return (
     <div
@@ -528,6 +638,7 @@ const HighlightedTextEditor = ({
 }) => {
   const editorRef = useRef(null);
   const [isComposing, setIsComposing] = useState(false);
+  const [cursorIndicatorTop, setCursorIndicatorTop] = useState(0);
 
   // Handle input
   const handleInput = (e) => {
@@ -535,6 +646,8 @@ const HighlightedTextEditor = ({
       const newValue = e.target.innerText;
       onChange(newValue);
     }
+    // Update indicator position after input
+    setTimeout(updateCursorIndicator, 0);
   };
 
   // Handle composition (for IME input)
@@ -548,6 +661,24 @@ const HighlightedTextEditor = ({
     onChange(newValue);
   };
 
+  // Update cursor indicator position
+  const updateCursorIndicator = useCallback(() => {
+    if (!editorRef.current) return;
+
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      const editorRect = editorRef.current.getBoundingClientRect();
+      
+      // Calculate center of the text line relative to editor
+      // Use rect.height to get the line height, then center the dot
+      const lineCenter = rect.top + rect.height / 2;
+      const top = lineCenter - editorRect.top;
+      setCursorIndicatorTop(top);
+    }
+  }, []);
+
   // Handle click on highlighted keyword
   const handleClick = (e) => {
     const target = e.target;
@@ -558,7 +689,14 @@ const HighlightedTextEditor = ({
         onKeywordClick(keyword);
       }
     }
+    // Update indicator position after click
+    setTimeout(updateCursorIndicator, 0);
   };
+
+  // Handle key events to update indicator
+  const handleKeyUp = useCallback(() => {
+    setTimeout(updateCursorIndicator, 0);
+  }, [updateCursorIndicator]);
 
   // Update content when value or keywordsMap changes
   useEffect(() => {
@@ -742,24 +880,48 @@ const HighlightedTextEditor = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, keywordsMap, isComposing]);
 
+  // Update indicator on selection change
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      updateCursorIndicator();
+    };
+
+    document.addEventListener("selectionchange", handleSelectionChange);
+    return () => {
+      document.removeEventListener("selectionchange", handleSelectionChange);
+    };
+  }, [updateCursorIndicator]);
+
   return (
-    <div
-      ref={editorRef}
-      contentEditable
-      onInput={handleInput}
-      onCompositionStart={handleCompositionStart}
-      onCompositionEnd={handleCompositionEnd}
-      onClick={handleClick}
-      className="w-full h-full text-sm leading-relaxed placeholder-gray-400 transition-colors bg-transparent border-none outline-none resize-none sm:text-base text-charcoal font-modern md:text-lg lg:text-xl focus:placeholder-gray-300"
-      style={{
-        fontFamily:
-          '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
-        whiteSpace: "pre-wrap",
-        wordWrap: "break-word",
-      }}
-      data-placeholder={placeholder}
-      suppressContentEditableWarning={true}
-    />
+    <div className="relative w-full h-full">
+      {/* Cursor indicator - blue dot on the left */}
+      <div
+        className="absolute left-0 z-10 w-2 h-2 transition-all duration-150 bg-blue-500 rounded-full pointer-events-none"
+        style={{
+          top: `${cursorIndicatorTop}px`,
+          transform: "translateY(-50%)",
+          opacity: cursorIndicatorTop > 0 ? 1 : 0,
+        }}
+      />
+      <div
+        ref={editorRef}
+        contentEditable
+        onInput={handleInput}
+        onCompositionStart={handleCompositionStart}
+        onCompositionEnd={handleCompositionEnd}
+        onClick={handleClick}
+        onKeyUp={handleKeyUp}
+        className="w-full h-full pl-4 text-sm leading-relaxed placeholder-gray-400 transition-colors bg-transparent border-none outline-none resize-none sm:text-base text-charcoal font-modern md:text-lg lg:text-xl focus:placeholder-gray-300"
+        style={{
+          fontFamily:
+            '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif',
+          whiteSpace: "pre-wrap",
+          wordWrap: "break-word",
+        }}
+        data-placeholder={placeholder}
+        suppressContentEditableWarning={true}
+      />
+    </div>
   );
 };
 
@@ -1593,7 +1755,8 @@ function Writer() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-white rounded-lg shadow-xl border border-gray-200 w-[calc(100vw-2rem)] max-w-96 sm:w-96 max-h-[60vh] overflow-y-auto custom-scrollbar z-50"
+                    className="absolute top-full mt-2 bg-white rounded-lg shadow-xl border border-gray-200 w-[calc(100vw-2rem)] max-w-96 sm:w-96 max-h-[60vh] overflow-y-auto custom-scrollbar z-50"
+                    style={{ left: "-205%" }}
                   >
                     <div className="p-3 space-y-2 text-xs text-gray-700 sm:p-4 sm:space-y-3 sm:text-sm">
                       <button
