@@ -1,6 +1,8 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { getKeywordColor } from "../utils/keywords";
+import { useImageRecognition } from "../hooks/useImageRecognition";
+import { LoadingDots } from "./LoadingDots";
 
 // Image Viewer Component
 export const ImageViewer = ({
@@ -15,6 +17,10 @@ export const ImageViewer = ({
   onNavigateToImage,
   onKeywordClick,
 }) => {
+  // Use image recognition hook
+  const { predictions, isLoading: isRecognizing, error: recognitionError } =
+    useImageRecognition(image?.url, !!image);
+
   if (!image) return null;
 
   return (
@@ -196,6 +202,62 @@ export const ImageViewer = ({
               </p>
               <p className="text-base text-charcoal font-modern">Photograph</p>
             </div>
+
+            {/* AI Recognition Results */}
+            {isRecognizing && (
+              <div>
+                <p
+                  className="mb-2 text-xs tracking-wider uppercase text-charcoal/60"
+                  style={{ fontWeight: "bold" }}
+                >
+                  ai recognition:
+                </p>
+                <div className="flex items-center gap-2">
+                  <LoadingDots />
+                  <span className="text-sm text-charcoal/60">Analyzing...</span>
+                </div>
+              </div>
+            )}
+
+            {predictions && predictions.length > 0 && (
+              <div>
+                <p
+                  className="mb-2 text-xs tracking-wider uppercase text-charcoal/60"
+                  style={{ fontWeight: "bold" }}
+                >
+                  ai recognition:
+                </p>
+                <div className="space-y-1">
+                  {predictions.map((prediction, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between text-sm"
+                    >
+                      <span className="text-charcoal font-modern">
+                        {prediction.label}
+                      </span>
+                      <span className="text-charcoal/60 text-xs">
+                        {prediction.confidence}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {recognitionError && (
+              <div>
+                <p
+                  className="mb-2 text-xs tracking-wider uppercase text-charcoal/60"
+                  style={{ fontWeight: "bold" }}
+                >
+                  ai recognition:
+                </p>
+                <p className="text-sm text-red-600 font-modern">
+                  {recognitionError}
+                </p>
+              </div>
+            )}
 
             <div>
               <p

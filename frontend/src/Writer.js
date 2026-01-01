@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Download } from "lucide-react";
+import { Search, Download, PenTool } from "lucide-react";
 import axios from "axios";
 import { debounce } from "lodash";
 import "./index.css";
@@ -19,6 +19,7 @@ import { ImageCard } from "./components/ImageCard";
 import { HighlightedTextEditor } from "./components/HighlightedTextEditor";
 import { PDFPreview } from "./components/PDFPreview";
 import { ImageViewer } from "./components/ImageViewer";
+import { DrawingCanvas } from "./components/DrawingCanvas";
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
 
@@ -35,6 +36,7 @@ function Writer() {
   const [keywordsMap, setKeywordsMap] = useState({}); // Map of keyword -> color
   const [showExamples, setShowExamples] = useState(false);
   const [showPDFPreview, setShowPDFPreview] = useState(false);
+  const [showDrawingCanvas, setShowDrawingCanvas] = useState(false);
   const [imagePositions, setImagePositions] = useState([]);
   const [imageSizes, setImageSizes] = useState({}); // Map of imageId -> {width, height}
   const galleryContainerRef = useRef(null);
@@ -294,6 +296,33 @@ function Writer() {
     setShowPDFPreview(true);
   };
 
+  // Handle drawing recognition result
+  const handleDrawingRecognition = useCallback(
+    async (recognizedLabel) => {
+      if (!recognizedLabel) return;
+
+      // Extract main keyword from label (e.g., "cat, tabby" -> "cat")
+      const mainKeyword = recognizedLabel.split(",")[0].trim().toLowerCase();
+
+      // Add to text editor or search directly
+      setText((prevText) => {
+        const newText = prevText ? `${prevText} ${mainKeyword}` : mainKeyword;
+        return newText;
+      });
+
+      // Close drawing canvas
+      setShowDrawingCanvas(false);
+
+      // Show notification
+      setNotification({
+        message: `Recognized: ${mainKeyword}. Searching for images...`,
+        type: "info",
+      });
+      setTimeout(() => setNotification(null), 3000);
+    },
+    []
+  );
+
   // Close viewer on Escape key
   useEffect(() => {
     const handleEscape = (e) => {
@@ -451,8 +480,16 @@ function Writer() {
             </div>
           </div>
 
-          {/* Download Button - Right */}
-          <div className="flex-shrink-0">
+          {/* Action Buttons - Right */}
+          <div className="flex items-center flex-shrink-0 gap-3">
+            <button
+              type="button"
+              onClick={() => setShowDrawingCanvas(true)}
+              className="text-gray-600 transition-colors hover:text-gray-900"
+              title="Draw & Recognize"
+            >
+              <PenTool className="w-4 h-4 sm:w-5 sm:h-5 md:h-6 md:w-6" />
+            </button>
             <button
               type="button"
               onClick={handleDownload}
@@ -570,6 +607,16 @@ function Writer() {
             images={images}
             onClose={() => setShowPDFPreview(false)}
             onDownload={() => setShowPDFPreview(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Drawing Canvas */}
+      <AnimatePresence>
+        {showDrawingCanvas && (
+          <DrawingCanvas
+            onClose={() => setShowDrawingCanvas(false)}
+            onRecognize={handleDrawingRecognition}
           />
         )}
       </AnimatePresence>
