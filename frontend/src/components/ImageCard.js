@@ -110,9 +110,15 @@ export const ImageCard = ({
             Photo by{" "}
             {image.photographer_profile ? (
               <a
-                href={`${image.photographer_profile}${
-                  image.photographer_profile.includes("?") ? "&" : "?"
-                }utm_source=zen-writing&utm_medium=referral`}
+                href={(() => {
+                  // Check if UTM params already exist
+                  const hasUtmParams = image.photographer_profile.includes("utm_source=zen-writing");
+                  if (hasUtmParams) {
+                    return image.photographer_profile;
+                  }
+                  const separator = image.photographer_profile.includes("?") ? "&" : "?";
+                  return `${image.photographer_profile}${separator}utm_source=zen-writing&utm_medium=referral`;
+                })()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline pointer-events-auto hover:text-white"

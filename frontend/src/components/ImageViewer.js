@@ -134,14 +134,22 @@ export const ImageViewer = ({
                   const profileUrl =
                     image.photographer_profile ||
                     (image.photographer_username
-                      ? `https://unsplash.com/@${image.photographer_username}`
+                      ? `https://unsplash.com/@${image.photographer_username}?utm_source=zen-writing&utm_medium=referral`
                       : null);
 
                   if (profileUrl) {
-                    const separator = profileUrl.includes("?") ? "&" : "?";
+                    // Check if UTM params already exist
+                    const hasUtmParams = profileUrl.includes("utm_source=zen-writing");
+                    let finalUrl = profileUrl;
+                    
+                    if (!hasUtmParams) {
+                      const separator = profileUrl.includes("?") ? "&" : "?";
+                      finalUrl = `${profileUrl}${separator}utm_source=zen-writing&utm_medium=referral`;
+                    }
+                    
                     return (
                       <a
-                        href={`${profileUrl}${separator}utm_source=zen-writing&utm_medium=referral`}
+                        href={finalUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="underline transition-colors cursor-pointer hover:text-red-600"

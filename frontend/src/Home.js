@@ -204,7 +204,7 @@ const Home = () => {
               A project by <strong>Zen Writing</strong> • Powered by{" "}
               <a
                 tabIndex={1}
-                href="https://unsplash.com"
+                href="https://unsplash.com/?utm_source=zen-writing&utm_medium=referral"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline transition-colors hover:text-charcoal"

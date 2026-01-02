@@ -55,7 +55,13 @@ app.get('/api/images', async (req, res) => {
       
       // Use username to construct profile URL if missing
       if (!imageData.photographer_profile && imageData.photographer_username) {
-        imageData.photographer_profile = `https://unsplash.com/@${imageData.photographer_username}`;
+        imageData.photographer_profile = `https://unsplash.com/@${imageData.photographer_username}?utm_source=zen-writing&utm_medium=referral`;
+      }
+      
+      // Ensure UTM params are added to photographer_profile if they don't exist
+      if (imageData.photographer_profile && !imageData.photographer_profile.includes('utm_source=zen-writing')) {
+        const separator = imageData.photographer_profile.includes('?') ? '&' : '?';
+        imageData.photographer_profile = `${imageData.photographer_profile}${separator}utm_source=zen-writing&utm_medium=referral`;
       }
       
       return imageData;
