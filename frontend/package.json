@@ -4,6 +4,7 @@
   "description": "AuraScribe - A zen-like writing environment",
   "private": true,
   "dependencies": {
+    "@vercel/analytics": "^1.6.1",
     "axios": "^1.6.0",
     "framer-motion": "^10.16.4",
     "html2canvas": "^1.4.1",
