@@ -12,41 +12,49 @@ A zen-like writing environment where imagery from Unsplash automatically surface
 
 ## Tech Stack
 
-- **Frontend**: React.js, Tailwind CSS, Framer Motion, Lucide React
-- **Backend**: Node.js, Express.js
+- **Language**: JavaScript (ES6+)
+- **Frontend**: React.js, React Router, Tailwind CSS, Framer Motion, Lucide React, Axios, Lodash
+- **Backend**: Node.js, Express.js, Axios, CORS
 - **APIs**: Unsplash Search API
+- **Tools**: html2canvas, jsPDF, ml5, Vercel Analytics
 
 ## Setup Instructions
 
 ### Backend Setup
 
 1. Navigate to the backend directory:
+
 ```bash
 cd backend
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Create a `.env` file from the example:
+
 ```bash
 cp .env.example .env
 ```
 
 4. Get your Unsplash Access Key:
+
    - Visit [Unsplash Developers](https://unsplash.com/developers)
    - Create a new application
    - Copy your Access Key
 
 5. Add your Unsplash Access Key to `.env`:
+
 ```
 UNSPLASH_ACCESS_KEY=your_access_key_here
 PORT=3001
 ```
 
 6. Start the backend server:
+
 ```bash
 npm start
 # or for development with auto-reload:
@@ -58,26 +66,31 @@ The backend will run on `http://localhost:3001`
 ### Frontend Setup
 
 1. Navigate to the frontend directory:
+
 ```bash
 cd frontend
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Create a `.env` file (optional, defaults to localhost:3001):
+
 ```bash
 cp .env.example .env
 ```
 
 4. Update `.env` if your backend runs on a different port:
+
 ```
 REACT_APP_API_URL=http://localhost:3001
 ```
 
 5. Start the development server:
+
 ```bash
 npm start
 ```
@@ -91,6 +104,7 @@ The frontend will run on `http://localhost:3000`
 2. **Keyword Extraction**: After 800ms of inactivity, the app extracts the last meaningful word (length > 3 characters) from your text.
 
 3. **Image Fetching**: The extracted keyword is sent to the backend, which securely queries Unsplash API with:
+
    - 6 images per search
    - Portrait orientation
    - High content filter
@@ -131,4 +145,3 @@ AuraScribe/
 ## License
 
 MIT
-
