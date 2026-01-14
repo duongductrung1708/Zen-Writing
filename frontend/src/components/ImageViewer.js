@@ -9,12 +9,8 @@ export const ImageViewer = ({
   image,
   images,
   currentIndex,
-  keyword,
-  keywordColor,
   onClose,
-  onPrevious,
-  onNext,
-  onNavigateToImage,
+  onChangeIndex,
   onKeywordClick,
 }) => {
   // Use image recognition hook
@@ -22,6 +18,10 @@ export const ImageViewer = ({
     useImageRecognition(image?.url, !!image);
 
   if (!image) return null;
+
+  const effectiveKeyword = image.keyword || "N/A";
+  const effectiveKeywordColor =
+    image.keywordColor || getKeywordColor(image.keyword || "");
 
   return (
     <motion.div
@@ -53,16 +53,13 @@ export const ImageViewer = ({
           <div className="flex items-center gap-2 mb-8 text-sm text-charcoal/70">
             <button
               onClick={() => {
-                if (currentIndex > 0) {
-                  const newIndex = currentIndex - 1;
-                  onNavigateToImage(newIndex);
-                  // Update image after navigation starts
-                  setTimeout(() => {
-                    onPrevious();
-                  }, 50);
-                }
+                if (!onChangeIndex) return;
+                if (!images || images.length === 0) return;
+                const newIndex =
+                  (currentIndex - 1 + images.length) % images.length;
+                onChangeIndex(newIndex);
               }}
-              disabled={currentIndex === 0}
+              disabled={!images || images.length <= 1}
               className="transition-colors hover:text-charcoal disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Previous
@@ -70,16 +67,12 @@ export const ImageViewer = ({
             <span>•</span>
             <button
               onClick={() => {
-                if (currentIndex < images.length - 1) {
-                  const newIndex = currentIndex + 1;
-                  onNavigateToImage(newIndex);
-                  // Update image after navigation starts
-                  setTimeout(() => {
-                    onNext();
-                  }, 50);
-                }
+                if (!onChangeIndex) return;
+                if (!images || images.length === 0) return;
+                const newIndex = (currentIndex + 1) % images.length;
+                onChangeIndex(newIndex);
               }}
-              disabled={currentIndex === images.length - 1}
+              disabled={!images || images.length <= 1}
               className="transition-colors hover:text-charcoal disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Next
@@ -98,15 +91,17 @@ export const ImageViewer = ({
               <button
                 type="button"
                 onClick={() =>
-                  keyword && onKeywordClick && onKeywordClick(keyword)
+                  effectiveKeyword &&
+                  effectiveKeyword !== "N/A" &&
+                  onKeywordClick &&
+                  onKeywordClick(effectiveKeyword)
                 }
                 className="inline-flex items-center px-3 py-1 text-xs transition-colors rounded-full font-modern text-charcoal hover:brightness-95"
                 style={{
-                  backgroundColor:
-                    keywordColor || getKeywordColor(keyword || ""),
+                  backgroundColor: effectiveKeywordColor,
                 }}
               >
-                {keyword || "N/A"}
+                {effectiveKeyword}
               </button>
             </div>
 

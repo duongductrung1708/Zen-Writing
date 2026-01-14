@@ -4,6 +4,7 @@
   "description": "AuraScribe - A zen-like writing environment",
   "private": true,
   "dependencies": {
+    "@tanstack/react-query": "^5.90.17",
     "@vercel/analytics": "^1.6.1",
     "axios": "^1.6.0",
     "framer-motion": "^10.16.4",
@@ -15,7 +16,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.0",
-    "react-scripts": "5.0.1"
+    "react-scripts": "5.0.1",
+    "zustand": "^5.0.10"
   },
   "scripts": {
     "start": "react-scripts start",

@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Download, PenTool } from "lucide-react";
-import axios from "axios";
 import { debounce } from "lodash";
 import "./index.css";
 
@@ -20,28 +19,46 @@ import { HighlightedTextEditor } from "./components/HighlightedTextEditor";
 import { PDFPreview } from "./components/PDFPreview";
 import { ImageViewer } from "./components/ImageViewer";
 import { DrawingCanvas } from "./components/DrawingCanvas";
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3001";
+import { useWriterStore } from "./store/writerStore";
+import { useKeywordImagesQuery } from "./hooks/useKeywordImagesQuery";
 
 function Writer() {
-  const [text, setText] = useState("");
-  const [images, setImages] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [notification, setNotification] = useState(null);
-  const [panScale, setPanScale] = useState(1);
-  const [panPosition, setPanPosition] = useState({ x: 0, y: 0 });
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(-1);
-  const [currentKeyword, setCurrentKeyword] = useState("");
-  const [keywordsMap, setKeywordsMap] = useState({}); // Map of keyword -> color
-  const [showExamples, setShowExamples] = useState(false);
-  const [showPDFPreview, setShowPDFPreview] = useState(false);
-  const [showDrawingCanvas, setShowDrawingCanvas] = useState(false);
-  const [imagePositions, setImagePositions] = useState([]);
-  const [imageSizes, setImageSizes] = useState({}); // Map of imageId -> {width, height}
+  const {
+    text,
+    setText,
+    images,
+    setImages,
+    isSearching,
+    setIsSearching,
+    notification,
+    setNotification,
+    panScale,
+    setPanScale,
+    panPosition,
+    setPanPosition,
+    selectedImage,
+    selectedImageIndex,
+    setSelectedImage,
+    setSelectedImageIndex,
+    setCurrentKeyword,
+    keywordsMap,
+    setKeywordsMap,
+    showExamples,
+    setShowExamples,
+    showPDFPreview,
+    setShowPDFPreview,
+    showDrawingCanvas,
+    setShowDrawingCanvas,
+    imagePositions,
+    setImagePositions,
+    imageSizes,
+    setImageSizes,
+  } = useWriterStore();
   const galleryContainerRef = useRef(null);
 
-  // Debounced search function - search for all keywords
+  const { fetchImagesByKeywords } = useKeywordImagesQuery();
+
+  // Debounced search function - triggers TanStack Query fetch
   const debouncedSearch = useRef(
     debounce(async (keywords) => {
       if (!keywords || keywords.length === 0) {
@@ -53,42 +70,14 @@ function Writer() {
       setIsSearching(true);
 
       try {
-        // Search for all keywords in parallel - only get 1 random image per keyword
-        const searchPromises = keywords.map(async (keyword) => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/api/images`, {
-          params: { keyword },
-        });
-        if (response.data.images && response.data.images.length > 0) {
-              const keywordColor = getKeywordColor(keyword);
-              // Pick a random image from the results
-              const randomIndex = Math.floor(Math.random() * response.data.images.length);
-              const randomImage = response.data.images[randomIndex];
-              return [{
-                ...randomImage,
-            keyword,
-                keywordColor,
-              }];
-            }
-            return [];
-          } catch (error) {
-            return [];
-          }
-        });
+        const uniqueImages = await fetchImagesByKeywords(keywords);
 
-        const results = await Promise.all(searchPromises);
-        const allImages = results.flat();
+        // Debug: log keywords and images
+        console.log("Keywords extracted:", keywords);
+        console.log("Images fetched:", uniqueImages.length);
+        console.log("Image keywords:", uniqueImages.map(img => img.keyword));
 
-        if (allImages.length > 0) {
-          // Remove duplicate images based on image.id
-          const uniqueImagesMap = new Map();
-          allImages.forEach((image) => {
-            if (!uniqueImagesMap.has(image.id)) {
-              uniqueImagesMap.set(image.id, image);
-            }
-          });
-          const uniqueImages = Array.from(uniqueImagesMap.values());
-
+        if (uniqueImages.length > 0) {
           setImages(uniqueImages);
           // Reset image sizes and positions when new images are loaded
           setImageSizes({});
@@ -171,7 +160,7 @@ function Writer() {
         return newSizes;
       });
     },
-    [images]
+    [images, setImagePositions, setImageSizes]
   );
 
   // Recalculate positions when images or sizes change
@@ -183,99 +172,98 @@ function Writer() {
       );
       setImagePositions(positions);
     }
-  }, [images, imageSizes]);
+  }, [images, imageSizes, setImagePositions]);
 
   // Navigate to image position in canvas
-  const navigateToImagePosition = (index) => {
-    if (index < 0 || index >= images.length || !imagePositions[index]) return;
+  const navigateToImagePosition = useCallback(
+    (index) => {
+      if (index < 0 || index >= images.length || !imagePositions[index]) return;
 
-    const imagePos = imagePositions[index];
-    const imageSize = imageSizes[images[index].id] || {
-      width: 300,
-      height: 400,
-    };
-    const targetScale = 1.8;
+      const imagePos = imagePositions[index];
+      const imageSize = imageSizes[images[index].id] || {
+        width: 300,
+        height: 400,
+      };
+      const targetScale = 1.8;
 
-    // Use setTimeout to ensure DOM is ready
-    setTimeout(() => {
-      const galleryContainer = galleryContainerRef.current;
-      if (galleryContainer) {
-        const containerRect = galleryContainer.getBoundingClientRect();
-        const innerContainer = galleryContainer.querySelector(".absolute");
-        
-        if (!innerContainer) return;
+      // Use setTimeout to ensure DOM is ready
+      setTimeout(() => {
+        const galleryContainer = galleryContainerRef.current;
+        if (galleryContainer) {
+          const containerRect = galleryContainer.getBoundingClientRect();
+          const innerContainer = galleryContainer.querySelector(".absolute");
+          
+          if (!innerContainer) return;
 
-        // Get padding from computed styles (p-3 sm:p-4 md:p-6 lg:p-8)
-        const computedStyle = window.getComputedStyle(innerContainer);
-        const paddingTop = parseFloat(computedStyle.paddingTop) || 12;
-        const paddingLeft = parseFloat(computedStyle.paddingLeft) || 12;
+          // Get padding from computed styles (p-3 sm:p-4 md:p-6 lg:p-8)
+          const computedStyle = window.getComputedStyle(innerContainer);
+          const paddingTop = parseFloat(computedStyle.paddingTop) || 12;
+          const paddingLeft = parseFloat(computedStyle.paddingLeft) || 12;
 
-        // Calculate container center (viewport center) - this is the transform origin
-        const containerCenterX = containerRect.width / 2;
-        const containerCenterY = containerRect.height / 2;
+          // Calculate container center (viewport center) - this is the transform origin
+          const containerCenterX = containerRect.width / 2;
+          const containerCenterY = containerRect.height / 2;
 
-        // Use actual image dimensions
-        const imageWidth = imageSize.width;
-        const imageHeight = imageSize.height;
+          // Use actual image dimensions
+          const imageWidth = imageSize.width;
+          const imageHeight = imageSize.height;
 
-        // Calculate the center of the image in canvas coordinates
-        // imagePos is relative to the canvas (which starts at padding position)
-        // So the actual position in the canvas is: imagePos.x + paddingLeft, imagePos.y + paddingTop
-        const imageCenterX = imagePos.x + paddingLeft + imageWidth / 2;
-        const imageCenterY = imagePos.y + paddingTop + imageHeight / 2;
+          // Calculate the center of the image in canvas coordinates
+          // imagePos is relative to the canvas (which starts at padding position)
+          // So the actual position in the canvas is: imagePos.x + paddingLeft, imagePos.y + paddingTop
+          const imageCenterX = imagePos.x + paddingLeft + imageWidth / 2;
+          const imageCenterY = imagePos.y + paddingTop + imageHeight / 2;
 
-        // With transform-origin: center, transforms are applied from the center of the container
-        // The motion.div has w-full h-full, so its center = container center
-        // To center the image in the viewport:
-        // - The image center in scaled space: imageCenter * scale
-        // - We want image center to be at viewport center
-        // - So: finalPosition = viewportCenter - (imageCenter * scale)
-        const finalX = containerCenterX - imageCenterX * targetScale;
-        const finalY = containerCenterY - imageCenterY * targetScale;
+          // With transform-origin: center, transforms are applied from the center of the container
+          // The motion.div has w-full h-full, so its center = container center
+          // To center the image in the viewport:
+          // - The image center in scaled space: imageCenter * scale
+          // - We want image center to be at viewport center
+          // - So: finalPosition = viewportCenter - (imageCenter * scale)
+          const finalX = containerCenterX - imageCenterX * targetScale;
+          const finalY = containerCenterY - imageCenterY * targetScale;
 
-        // Zoom in to focus on the image
-        setPanScale(targetScale);
+          // Zoom in to focus on the image
+          setPanScale(targetScale);
 
-        // Animate to the position
-        setPanPosition({
-          x: finalX,
-          y: finalY,
-        });
-      }
-    }, 100);
-  };
+          // Animate to the position
+          setPanPosition({
+            x: finalX,
+            y: finalY,
+          });
+        }
+      }, 100);
+    },
+    [imagePositions, imageSizes, images, setPanPosition, setPanScale]
+  );
 
   // Handle close viewer
-  const handleCloseViewer = () => {
+  const handleCloseViewer = useCallback(() => {
     setSelectedImage(null);
     setSelectedImageIndex(-1);
     // Reset zoom when closing
     setPanScale(1);
     setPanPosition({ x: 0, y: 0 });
-  };
+  }, [setPanPosition, setPanScale, setSelectedImage, setSelectedImageIndex]);
 
-  // Handle navigation
-  const handlePrevious = () => {
-    if (selectedImageIndex > 0) {
-      const newIndex = selectedImageIndex - 1;
+  // Handle navigation between images in viewer + canvas
+  const handleChangeViewerIndex = useCallback(
+    (newIndex) => {
+      if (newIndex < 0 || newIndex >= images.length) return;
       setSelectedImageIndex(newIndex);
       setSelectedImage(images[newIndex]);
-    }
-  };
-
-  const handleNext = () => {
-    if (selectedImageIndex < images.length - 1) {
-      const newIndex = selectedImageIndex + 1;
-      setSelectedImageIndex(newIndex);
-      setSelectedImage(images[newIndex]);
-    }
-  };
+      navigateToImagePosition(newIndex);
+    },
+    [images, navigateToImagePosition, setSelectedImage, setSelectedImageIndex]
+  );
 
   // Handle keyword click in viewer
   const handleKeywordClick = (keyword) => {
     if (!keyword) return;
     const index = images.findIndex((img) => img.keyword === keyword);
     if (index !== -1) {
+      setSelectedImageIndex(index);
+      setSelectedImage(images[index]);
       navigateToImagePosition(index);
     }
   };
@@ -286,6 +274,8 @@ function Writer() {
     // Find first image with this keyword
     const index = images.findIndex((img) => img.keyword === keyword);
     if (index !== -1) {
+      setSelectedImageIndex(index);
+      setSelectedImage(images[index]);
       navigateToImagePosition(index);
     }
   };
@@ -320,7 +310,7 @@ function Writer() {
       });
       setTimeout(() => setNotification(null), 3000);
     },
-    []
+    [setNotification, setShowDrawingCanvas, setText]
   );
 
   // Close viewer on Escape key
@@ -332,7 +322,7 @@ function Writer() {
     };
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [selectedImage]);
+  }, [handleCloseViewer, selectedImage]);
 
   return (
     <div className="flex flex-col min-h-screen bg-ivory md:flex-row">
@@ -588,12 +578,8 @@ function Writer() {
             image={selectedImage}
             images={images}
             currentIndex={selectedImageIndex}
-            keyword={selectedImage.keyword || currentKeyword}
-            keywordColor={selectedImage.keywordColor || getKeywordColor(selectedImage.keyword || currentKeyword || "")}
             onClose={handleCloseViewer}
-            onPrevious={handlePrevious}
-            onNext={handleNext}
-            onNavigateToImage={navigateToImagePosition}
+            onChangeIndex={handleChangeViewerIndex}
             onKeywordClick={handleKeywordClick}
           />
         )}
