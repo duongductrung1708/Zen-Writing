@@ -1,4 +1,4 @@
-# AuraScribe
+# ZenWriting
 
 A zen-like writing environment where imagery from Unsplash automatically surfaces based on your live input, creating a visual reflection of your thoughts.
 
@@ -16,7 +16,7 @@ A zen-like writing environment where imagery from Unsplash automatically surface
 - **Frontend**: React.js, React Router, Tailwind CSS, Framer Motion, Lucide React, Axios, Lodash
 - **Backend**: Node.js, Express.js, Axios, CORS
 - **APIs**: Unsplash Search API
-- **Tools**: html2canvas, jsPDF, ml5, Vercel Analytics
+- **Tools**: html2canvas, jsPDF, Vercel Analytics
 
 ## Setup Instructions
 
@@ -41,7 +41,6 @@ cp .env.example .env
 ```
 
 4. Get your Unsplash Access Key:
-
    - Visit [Unsplash Developers](https://unsplash.com/developers)
    - Create a new application
    - Copy your Access Key
@@ -104,7 +103,6 @@ The frontend will run on `http://localhost:3000`
 2. **Keyword Extraction**: After 800ms of inactivity, the app extracts the last meaningful word (length > 3 characters) from your text.
 
 3. **Image Fetching**: The extracted keyword is sent to the backend, which securely queries Unsplash API with:
-
    - 6 images per search
    - Portrait orientation
    - High content filter

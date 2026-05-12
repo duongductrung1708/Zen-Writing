@@ -38,3 +38,5 @@ Thumbs.db
 *.log
 .cache
 
+# Bỏ qua các file nháp của Vinxi/TanStack
+app.config.timestamp_*
