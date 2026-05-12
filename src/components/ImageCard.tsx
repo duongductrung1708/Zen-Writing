@@ -1,9 +1,21 @@
 import React, { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { LoadingDots } from "./LoadingDots";
+import { ZenImage } from "@/store/writerStore";
+import { Position, ImageSize } from "@/utils/layout";
+
+// 1. Định nghĩa khuôn mẫu Props cho ImageCard
+interface ImageCardProps {
+  image: ZenImage;
+  index: number;
+  onImageClick: (image: ZenImage, index: number) => void;
+  position?: Position; // Có thể undefined lúc đang load
+  size?: ImageSize; // Có thể undefined lúc đang load
+  onSizeLoad?: (imageId: string, size: ImageSize) => void;
+}
 
 // Image card component
-export const ImageCard = ({
+export const ImageCard: React.FC<ImageCardProps> = ({
   image,
   index,
   onImageClick,
@@ -11,7 +23,8 @@ export const ImageCard = ({
   size,
   onSizeLoad,
 }) => {
-  const imgRef = useRef(null);
+  // 2. Khai báo rõ ref dùng cho thẻ img
+  const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     if (!size) {
@@ -46,11 +59,11 @@ export const ImageCard = ({
     }
   }, [image.url, image.id, size, onSizeLoad]);
 
+  // 3. Xử lý trạng thái Loading hiển thị Placeholder
   if (!position || !size) {
-    // Show placeholder while loading size
     return (
       <motion.div
-        className="absolute overflow-hidden bg-gray-100 rounded-lg shadow-lg"
+        className="absolute overflow-hidden rounded-lg bg-gray-100 shadow-lg"
         style={{
           width: "200px",
           height: "280px",
@@ -58,7 +71,7 @@ export const ImageCard = ({
           y: position?.y || 0,
         }}
       >
-        <div className="flex items-center justify-center w-full h-full">
+        <div className="flex h-full w-full items-center justify-center">
           <LoadingDots />
         </div>
       </motion.div>
@@ -86,7 +99,7 @@ export const ImageCard = ({
         ease: [0.4, 0, 0.2, 1],
       }}
       onClick={() => onImageClick(image, index)}
-      className="absolute overflow-hidden rounded-lg shadow-lg cursor-pointer group hover:shadow-2xl"
+      className="group absolute cursor-pointer overflow-hidden rounded-lg shadow-lg hover:shadow-2xl"
       style={{
         width: `${size.width}px`,
         height: `${size.height}px`,
@@ -96,48 +109,44 @@ export const ImageCard = ({
       <img
         ref={imgRef}
         src={image.url}
-        alt={image.alt_description}
-        className="object-cover w-full h-full pointer-events-none"
+        alt={image.alt_description || "Zen Writing Art"}
+        className="pointer-events-none h-full w-full object-cover"
         loading="lazy"
         draggable={false}
       />
-      <div className="absolute inset-0 transition-opacity duration-300 opacity-0 bg-linear-to-t from-black/60 via-transparent to-transparent group-hover:opacity-100">
-        <div className="absolute bottom-0 left-0 right-0 p-3 text-xs text-white pointer-events-auto">
-          <p className="font-medium truncate pointer-events-none">
-            {image.alt_description}
+      <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+        <div className="pointer-events-auto absolute right-0 bottom-0 left-0 p-3 text-xs text-white">
+          <p className="pointer-events-none truncate font-medium">
+            {image.alt_description || "Untitled Artwork"}
           </p>
-          <p className="text-white/80 text-[10px] mt-1">
+          <p className="mt-1 text-[10px] text-white/80">
             Photo by{" "}
             {image.photographer_profile ? (
               <a
                 href={(() => {
-                  // Check if UTM params already exist
-                  const hasUtmParams = image.photographer_profile.includes("utm_source=zen-writing");
-                  if (hasUtmParams) {
-                    return image.photographer_profile;
-                  }
-                  const separator = image.photographer_profile.includes("?") ? "&" : "?";
-                  return `${image.photographer_profile}${separator}utm_source=zen-writing&utm_medium=referral`;
+                  const profile = image.photographer_profile as string;
+                  const hasUtmParams = profile.includes("utm_source=zen-writing");
+                  if (hasUtmParams) return profile;
+                  const separator = profile.includes("?") ? "&" : "?";
+                  return `${profile}${separator}utm_source=zen-writing&utm_medium=referral`;
                 })()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline pointer-events-auto hover:text-white"
-                onClick={(e) => e.stopPropagation()}
+                className="pointer-events-auto underline hover:text-white"
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
               >
                 {image.photographer_name}
               </a>
             ) : (
-              <span className="pointer-events-none">
-                {image.photographer_name}
-              </span>
+              <span className="pointer-events-none">{image.photographer_name}</span>
             )}{" "}
             on{" "}
             <a
               href={`https://unsplash.com/?utm_source=zen-writing&utm_medium=referral`}
               target="_blank"
               rel="noopener noreferrer"
-              className="underline pointer-events-auto hover:text-white"
-              onClick={(e) => e.stopPropagation()}
+              className="pointer-events-auto underline hover:text-white"
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
               Unsplash
             </a>

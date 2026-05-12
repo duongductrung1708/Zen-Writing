@@ -10,9 +10,9 @@ export const Ruler = ({ scale = 1 }) => {
   const scaledValues = baseValues.map((val) => Math.round(val * scale));
 
   return (
-    <div className="relative w-64 h-5 border border-gray-300 rounded-sm bg-white/80 backdrop-blur-sm">
+    <div className="relative h-5 w-64 rounded-sm border border-gray-300 bg-white/80 backdrop-blur-sm">
       {/* Base line */}
-      <div className="absolute bottom-0 left-0 w-full h-px bg-gray-600" />
+      <div className="absolute bottom-0 left-0 h-px w-full bg-gray-600" />
 
       {/* Tick marks and labels */}
       {Array.from({ length: totalTicks + 1 }).map((_, index) => {
@@ -27,14 +27,12 @@ export const Ruler = ({ scale = 1 }) => {
             style={{ left: `${position}%`, transform: "translateX(-50%)" }}
           >
             {/* Tick mark */}
-            <div className="w-px h-2 bg-gray-600" />
+            <div className="h-2 w-px bg-gray-600" />
 
             {/* Label */}
             {isLabeled && (
-              <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-[8px] text-gray-600 font-sans whitespace-nowrap leading-none">
-                {labelIndex === 0
-                  ? `${scaledValues[labelIndex]}CM`
-                  : scaledValues[labelIndex]}
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 transform font-sans text-[8px] leading-none whitespace-nowrap text-gray-600">
+                {labelIndex === 0 ? `${scaledValues[labelIndex]}CM` : scaledValues[labelIndex]}
               </div>
             )}
           </div>

@@ -1,16 +1,42 @@
 import { useState, useEffect, useRef } from "react";
 
-// TẠO KHÓA BẢO VỆ GLOBAL Ở NGOÀI HOOK
-// Để React Strict Mode (chạy useEffect 2 lần) không tải model 2 lần làm sập TensorFlow
-let globalClassifierPromise = null;
+// 1. "Làm giấy khai sinh" cho thư viện ML5 để TS không báo lỗi window.ml5
+declare global {
+  interface Window {
+    ml5: any;
+  }
+}
 
-export const useImageRecognition = (imageUrl, enabled = true) => {
-  const [predictions, setPredictions] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [isModelReady, setIsModelReady] = useState(false);
-  
-  const classifierRef = useRef(null);
+// 2. Định nghĩa khuôn mẫu cho Kết quả dự đoán
+export interface Prediction {
+  label: string;
+  confidence: string;
+}
+
+// 3. Định nghĩa khuôn mẫu cho kết quả trả về của toàn bộ Hook
+export interface ImageRecognitionResult {
+  predictions: Prediction[];
+  isLoading: boolean;
+  error: string | null;
+  isModelReady: boolean;
+}
+
+// TẠO KHÓA BẢO VỆ GLOBAL Ở NGOÀI HOOK
+// Ép kiểu cho cỗ máy AI là một Promise
+let globalClassifierPromise: Promise<any> | null = null;
+
+export const useImageRecognition = (
+  imageUrl: string | null,
+  enabled: boolean = true
+): ImageRecognitionResult => {
+  // 4. Bơm kiểu dữ liệu vào các State
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isModelReady, setIsModelReady] = useState<boolean>(false);
+
+  // Dùng any cho bộ não AI vì cấu trúc bên trong nó rất phức tạp
+  const classifierRef = useRef<any>(null);
 
   useEffect(() => {
     if (typeof window === "undefined" || !enabled) return;
@@ -35,7 +61,6 @@ export const useImageRecognition = (imageUrl, enabled = true) => {
         // Chờ tải xong (Nếu chạy lần 2 do Strict Mode, nó chỉ việc đứng chờ Promise cũ hoàn thành)
         classifierRef.current = await globalClassifierPromise;
         setIsModelReady(true);
-        
       } catch (err) {
         console.error("ML5 Init Error:", err);
         setError("Không thể tải hệ thống nhận diện AI.");
@@ -54,12 +79,13 @@ export const useImageRecognition = (imageUrl, enabled = true) => {
 
       try {
         const img = new Image();
-        
+
         img.onload = async () => {
           try {
             const results = await classifierRef.current.classify(img);
-            
-            const formattedPredictions = results.slice(0, 3).map((result) => ({
+
+            // 5. Định danh biến result trong vòng lặp map
+            const formattedPredictions = results.slice(0, 3).map((result: any) => ({
               label: result.label,
               confidence: (result.confidence * 100).toFixed(1),
             }));

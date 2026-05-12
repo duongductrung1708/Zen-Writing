@@ -1,25 +1,51 @@
+// Định nghĩa các khuôn mẫu (Interface) để tái sử dụng
+export interface ImageSize {
+  width: number;
+  height: number;
+}
+
+export interface Position {
+  x: number;
+  y: number;
+}
+
+// Hình chữ nhật (Rect) sẽ bao gồm cả tọa độ và kích thước
+interface Rect extends Position, ImageSize {}
+
 // Random layout helper - calculates random positions with collision detection
-export const calculateMasonryLayout = (images, imageSizes) => {
-  const positions = new Array(images.length);
-  const placedRects = []; // Track placed rectangles for collision detection
+export const calculateMasonryLayout = (
+  images: any[], // Dùng any[] tạm thời, sau này có model Image chuẩn thì thay vào
+  imageSizes: ImageSize[]
+): Position[] => {
+  const positions: Position[] = new Array(images.length);
+  const placedRects: Rect[] = []; // Track placed rectangles for collision detection
   const gap = 20; // Minimum gap between images
+
   // Responsive canvas width based on screen size
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-  const isTablet = typeof window !== 'undefined' && window.innerWidth < 768;
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+  const isTablet = typeof window !== "undefined" && window.innerWidth < 768;
   let canvasWidth = isMobile ? 400 : isTablet ? 600 : 1200; // Canvas width for random placement
   let canvasHeight = 2000; // Canvas height for random placement
   const maxAttempts = 200; // Increased attempts to find a non-overlapping position
 
   // Sort images by area (largest first) for better placement, but keep original index
-  const imagesWithSizes = images.map((image, index) => ({
-    image,
-    originalIndex: index,
-    size: imageSizes[index] || { width: 300, height: 400 },
-    area: (imageSizes[index]?.width || 300) * (imageSizes[index]?.height || 400),
-  })).sort((a, b) => b.area - a.area);
+  const imagesWithSizes = images
+    .map((image, index) => ({
+      image,
+      originalIndex: index,
+      size: imageSizes[index] || { width: 300, height: 400 },
+      area: (imageSizes[index]?.width || 300) * (imageSizes[index]?.height || 400),
+    }))
+    .sort((a, b) => b.area - a.area);
 
   // Helper function to check collision with proper gap
-  const checkCollision = (x, y, width, height, rects) => {
+  const checkCollision = (
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    rects: Rect[]
+  ): boolean => {
     return rects.some((rect) => {
       // Check if rectangles overlap (with gap)
       const hasHorizontalOverlap = !(x + width + gap <= rect.x || x >= rect.x + rect.width + gap);
@@ -29,7 +55,7 @@ export const calculateMasonryLayout = (images, imageSizes) => {
   };
 
   // Helper function to find a random position
-  const findRandomPosition = (width, height) => {
+  const findRandomPosition = (width: number, height: number): Position => {
     let attempts = 0;
     while (attempts < maxAttempts) {
       const x = Math.random() * (canvasWidth - width - gap * 2) + gap;
@@ -40,7 +66,7 @@ export const calculateMasonryLayout = (images, imageSizes) => {
       }
       attempts++;
     }
-    
+
     // Fallback: Try grid-based placement if random fails
     const gridSize = 50;
     for (let gridY = gap; gridY < canvasHeight - height - gap; gridY += gridSize) {
@@ -50,7 +76,7 @@ export const calculateMasonryLayout = (images, imageSizes) => {
         }
       }
     }
-    
+
     // Last resort: Expand canvas and place at bottom
     const newY = canvasHeight + gap;
     canvasHeight = newY + height + gap;

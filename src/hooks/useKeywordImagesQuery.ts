@@ -1,21 +1,22 @@
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getKeywordColor } from "../utils/keywords";
-// 1. Import hàm từ Backend thẳng vào Frontend như một vị thần
-import { getUnsplashImages } from "../server/images"; 
+import { getKeywordColor } from "@/utils/keywords";
+import { getUnsplashImages } from "@/server/images";
+
+// 1. Import khuôn mẫu ZenImage mà chúng ta đã vất vả định nghĩa ở Store
+import { ZenImage } from "@/store/writerStore";
 
 export const useKeywordImagesQuery = () => {
   const queryClient = useQueryClient();
 
-  const fetchImagesByKeywords = useCallback(async (keywords) => {
+  // 2. Ép kiểu đầu vào (keywords là mảng string) và đầu ra (trả về mảng ZenImage)
+  const fetchImagesByKeywords = useCallback(async (keywords: string[]): Promise<ZenImage[]> => {
     if (!keywords || keywords.length === 0) {
       return [];
     }
 
-    const searchPromises = keywords.map(async (keyword, keywordIndex) => {
+    const searchPromises = keywords.map(async (keyword: string, keywordIndex: number) => {
       try {
-        // 2. GỌI TRỰC TIẾP HÀM BẰNG RPC (Không cần Axios, Không lo 404!)
-        // TanStack sẽ tự động bọc cái này thành 1 API Call ngầm.
         const images = await getUnsplashImages({ data: keyword });
 
         if (images && images.length > 0) {
@@ -24,25 +25,27 @@ export const useKeywordImagesQuery = () => {
           const randomImage = images[randomIndex];
 
           return {
+            // Ép kiểu object này cho chuẩn form ZenImage
             image: {
               ...randomImage,
               keyword,
               keywordColor,
-            },
+            } as ZenImage,
             keywordIndex,
           };
         }
 
         return null;
       } catch (error) {
-        return null; 
+        return null;
       }
     });
 
     const results = await Promise.all(searchPromises);
-    
+
+    // 3. Kỹ thuật "Type Guard" trong TS để lọc bỏ giá trị null an toàn
     const imagesWithOrder = results
-      .filter((result) => result !== null)
+      .filter((result): result is { image: ZenImage; keywordIndex: number } => result !== null)
       .sort((a, b) => a.keywordIndex - b.keywordIndex)
       .map((result) => result.image);
 
@@ -54,14 +57,13 @@ export const useKeywordImagesQuery = () => {
   }, []);
 
   const fetchWithCache = useCallback(
-    (keywords) =>
+    (keywords: string[]): Promise<ZenImage[]> =>
       queryClient.fetchQuery({
         queryKey: ["imagesByKeywords", keywords],
         queryFn: () => fetchImagesByKeywords(keywords),
         staleTime: 5 * 60 * 1000,
         gcTime: 10 * 60 * 1000,
         retry: 0,
-        refetchOnWindowFocus: false,
       }),
     [queryClient, fetchImagesByKeywords]
   );

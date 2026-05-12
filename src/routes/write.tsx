@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useCallback } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Download, PenTool } from "lucide-react";
-import pkg from 'lodash';
+import pkg from "lodash";
 const { debounce } = pkg;
 
 // Utils
@@ -61,13 +61,15 @@ function Writer() {
     imageSizes,
     setImageSizes,
   } = useWriterStore();
-  const galleryContainerRef = useRef(null);
+
+  // Sửa lỗi 'never' bằng cách định danh rõ đây là HTMLDivElement
+  const galleryContainerRef = useRef<HTMLDivElement>(null);
 
   const { fetchImagesByKeywords } = useKeywordImagesQuery();
 
   // Debounced search function - triggers TanStack Query fetch
   const debouncedSearch = useRef(
-    debounce(async (keywords) => {
+    debounce(async (keywords: string[]) => {
       if (!keywords || keywords.length === 0) {
         setImages([]);
         setIsSearching(false);
@@ -82,7 +84,10 @@ function Writer() {
         // Debug: log keywords and images
         console.log("Keywords extracted:", keywords);
         console.log("Images fetched:", uniqueImages.length);
-        console.log("Image keywords:", uniqueImages.map(img => img.keyword));
+        console.log(
+          "Image keywords:",
+          uniqueImages.map((img: any) => img.keyword)
+        );
 
         if (uniqueImages.length > 0) {
           setImages(uniqueImages);
@@ -91,11 +96,11 @@ function Writer() {
           setImagePositions([]);
 
           // Update keywords map with colors
-          const newKeywordsMap = {};
-          keywords.forEach((keyword) => {
+          const newKeywordsMap: Record<string, string> = {};
+          keywords.forEach((keyword: string) => {
             newKeywordsMap[keyword] = getKeywordColor(keyword);
           });
-          setKeywordsMap((prev) => ({
+          setKeywordsMap((prev: Record<string, string>) => ({
             ...prev,
             ...newKeywordsMap,
           }));
@@ -112,7 +117,7 @@ function Writer() {
           });
           setTimeout(() => setNotification(null), 3000);
         }
-      } catch (error) {
+      } catch (error: any) {
         setNotification({
           message: error.response?.data?.error || "Failed to fetch images",
           type: "error",
@@ -139,7 +144,7 @@ function Writer() {
   }, [debouncedSearch]);
 
   // Handle image click
-  const handleImageClick = (image, index) => {
+  const handleImageClick = (image: any, index: number) => {
     setSelectedImage(image);
     setSelectedImageIndex(index);
     // Navigate to image position in canvas
@@ -148,17 +153,17 @@ function Writer() {
 
   // Handle image size load
   const handleImageSizeLoad = useCallback(
-    (imageId, size) => {
-      setImageSizes((prev) => {
+    (imageId: string, size: { width: number; height: number }) => {
+      setImageSizes((prev: any) => {
         const newSizes = { ...prev, [imageId]: size };
 
         // Recalculate positions when all images have sizes
         if (images.length > 0) {
-          const allSizesLoaded = images.every((img) => newSizes[img.id]);
+          const allSizesLoaded = images.every((img: any) => newSizes[img.id]);
           if (allSizesLoaded) {
             const positions = calculateMasonryLayout(
               images,
-              images.map((img) => newSizes[img.id])
+              images.map((img: any) => newSizes[img.id])
             );
             setImagePositions(positions);
           }
@@ -175,7 +180,7 @@ function Writer() {
     if (images.length > 0 && Object.keys(imageSizes).length === images.length) {
       const positions = calculateMasonryLayout(
         images,
-        images.map((img) => imageSizes[img.id] || { width: 300, height: 400 })
+        images.map((img: any) => imageSizes[img.id] || { width: 300, height: 400 })
       );
       setImagePositions(positions);
     }
@@ -183,7 +188,7 @@ function Writer() {
 
   // Navigate to image position in canvas
   const navigateToImagePosition = useCallback(
-    (index) => {
+    (index: number) => {
       if (index < 0 || index >= images.length || !imagePositions[index]) return;
 
       const imagePos = imagePositions[index];
@@ -199,7 +204,7 @@ function Writer() {
         if (galleryContainer) {
           const containerRect = galleryContainer.getBoundingClientRect();
           const innerContainer = galleryContainer.querySelector(".absolute");
-          
+
           if (!innerContainer) return;
 
           // Get padding from computed styles (p-3 sm:p-4 md:p-6 lg:p-8)
@@ -255,7 +260,7 @@ function Writer() {
 
   // Handle navigation between images in viewer + canvas
   const handleChangeViewerIndex = useCallback(
-    (newIndex) => {
+    (newIndex: number) => {
       if (newIndex < 0 || newIndex >= images.length) return;
       setSelectedImageIndex(newIndex);
       setSelectedImage(images[newIndex]);
@@ -265,9 +270,9 @@ function Writer() {
   );
 
   // Handle keyword click in viewer
-  const handleKeywordClick = (keyword) => {
+  const handleKeywordClick = (keyword: string) => {
     if (!keyword) return;
-    const index = images.findIndex((img) => img.keyword === keyword);
+    const index = images.findIndex((img: any) => img.keyword === keyword);
     if (index !== -1) {
       setSelectedImageIndex(index);
       setSelectedImage(images[index]);
@@ -276,10 +281,10 @@ function Writer() {
   };
 
   // Handle keyword click in text editor
-  const handleKeywordClickInText = (keyword) => {
+  const handleKeywordClickInText = (keyword: string) => {
     if (!keyword) return;
     // Find first image with this keyword
-    const index = images.findIndex((img) => img.keyword === keyword);
+    const index = images.findIndex((img: any) => img.keyword === keyword);
     if (index !== -1) {
       setSelectedImageIndex(index);
       setSelectedImage(images[index]);
@@ -295,14 +300,14 @@ function Writer() {
 
   // Handle drawing recognition result
   const handleDrawingRecognition = useCallback(
-    async (recognizedLabel) => {
+    async (recognizedLabel: string) => {
       if (!recognizedLabel) return;
 
       // Extract main keyword from label (e.g., "cat, tabby" -> "cat")
       const mainKeyword = recognizedLabel.split(",")[0].trim().toLowerCase();
 
       // Add to text editor or search directly
-      setText((prevText) => {
+      setText((prevText: string) => {
         const newText = prevText ? `${prevText} ${mainKeyword}` : mainKeyword;
         return newText;
       });
@@ -322,7 +327,7 @@ function Writer() {
 
   // Close viewer on Escape key
   useEffect(() => {
-    const handleEscape = (e) => {
+    const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && selectedImage) {
         handleCloseViewer();
       }
@@ -332,34 +337,32 @@ function Writer() {
   }, [handleCloseViewer, selectedImage]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-ivory md:flex-row">
+    <div className="bg-ivory flex min-h-screen flex-col md:flex-row">
       {/* Left Side - Editor */}
-      <div className="flex flex-col w-full border-b border-gray-200 md:w-1/2 md:border-b-0 md:border-r">
+      <div className="flex w-full flex-col border-b border-gray-200 md:w-1/2 md:border-r md:border-b-0">
         {/* Header Bar */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4 md:px-12 lg:px-12 md:pt-12 lg:pt-12 md:pb-4">
+        <div className="flex items-center justify-between px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4 md:px-12 md:pt-12 md:pb-4 lg:px-12 lg:pt-12">
           {/* Logo */}
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <img
               src="/assets/zen_logo.png"
               alt="Zen Writing Logo"
-              className="object-contain w-4 h-4 sm:w-5 sm:h-5 md:h-6 md:w-6"
+              className="h-4 w-4 object-contain sm:h-5 sm:w-5 md:h-6 md:w-6"
             />
           </div>
 
           {/* Examples - Center */}
-          <div className="relative flex justify-center flex-1">
-            <div className="relative examples-dropdown-container">
+          <div className="relative flex flex-1 justify-center">
+            <div className="examples-dropdown-container relative">
               <button
                 type="button"
                 tabIndex={1}
-                onClick={() => setShowExamples((prev) => !prev)}
-                className="group inline-flex flex-col items-center gap-0.5 sm:gap-1 text-[10px] sm:text-[11px] tracking-[0.25em] uppercase text-gray-600"
+                onClick={() => setShowExamples((prev: boolean) => !prev)}
+                className="group inline-flex flex-col items-center gap-0.5 text-[10px] tracking-[0.25em] text-gray-600 uppercase sm:gap-1 sm:text-[11px]"
               >
-                <span className="font-semibold text-[0.7rem] sm:text-[0.8rem]">
-                  Examples
-                </span>
-                <span className="relative w-full h-px overflow-hidden bg-gray-200">
-                  <span className="absolute inset-0 transition-transform duration-200 origin-center scale-x-0 bg-gray-600 group-hover:scale-x-100" />
+                <span className="text-[0.7rem] font-semibold sm:text-[0.8rem]">Examples</span>
+                <span className="relative h-px w-full overflow-hidden bg-gray-200">
+                  <span className="absolute inset-0 origin-center scale-x-0 bg-gray-600 transition-transform duration-200 group-hover:scale-x-100" />
                 </span>
               </button>
 
@@ -371,10 +374,10 @@ function Writer() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute top-full mt-2 bg-white rounded-lg shadow-xl border border-gray-200 w-[calc(100vw-2rem)] max-w-96 sm:w-96 max-h-[60vh] overflow-y-auto custom-scrollbar z-50"
+                    className="custom-scrollbar absolute top-full z-50 mt-2 max-h-[60vh] w-[calc(100vw-2rem)] max-w-96 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-xl sm:w-96"
                     style={{ left: "-205%" }}
                   >
-                    <div className="p-3 space-y-2 text-xs text-gray-700 sm:p-4 sm:space-y-3 sm:text-sm">
+                    <div className="space-y-2 p-3 text-xs text-gray-700 sm:space-y-3 sm:p-4 sm:text-sm">
                       <button
                         type="button"
                         tabIndex={-1}
@@ -384,8 +387,8 @@ function Writer() {
                           );
                           setShowExamples(false);
                         }}
-                        className="text-sm underline transition-colors underline-offset-4 decoration-gray-400 hover:decoration-gray-700 hover:text-red-600 sm:text-lg"
-            style={{
+                        className="text-sm underline decoration-gray-400 underline-offset-4 transition-colors hover:text-red-600 hover:decoration-gray-700 sm:text-lg"
+                        style={{
                           textDecoration: "none",
                           textAlign: "center",
                           display: "block",
@@ -407,7 +410,10 @@ function Writer() {
                       >
                         Popular texts you can explore:
                       </p>
-                      <ul className="space-y-2" style={{ marginTop: "1rem", listStyleType: "circle", marginLeft: "1rem" }}>
+                      <ul
+                        className="space-y-2"
+                        style={{ marginTop: "1rem", listStyleType: "circle", marginLeft: "1rem" }}
+                      >
                         <li>
                           <button
                             type="button"
@@ -420,8 +426,7 @@ function Writer() {
                             }}
                             className="w-full py-1 text-left transition-colors hover:text-red-600"
                           >
-                            <em>Dear One Absent This Long While</em> by Lisa
-                            Olstein
+                            <em>Dear One Absent This Long While</em> by Lisa Olstein
                           </button>
                         </li>
                         <li>
@@ -478,28 +483,28 @@ function Writer() {
           </div>
 
           {/* Action Buttons - Right */}
-          <div className="flex items-center flex-shrink-0 gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             <button
               type="button"
               onClick={() => setShowDrawingCanvas(true)}
               className="text-gray-600 transition-colors hover:text-gray-900"
               title="Draw & Recognize"
             >
-              <PenTool className="w-4 h-4 sm:w-5 sm:h-5 md:h-6 md:w-6" />
+              <PenTool className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
             </button>
             <button
               type="button"
               onClick={handleDownload}
               disabled={!text.trim() && images.length === 0}
-              className="text-gray-600 transition-colors hover:text-gray-900 disabled:text-gray-300 disabled:cursor-not-allowed"
+              className="text-gray-600 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:text-gray-300"
               title="Download PDF"
             >
-              <Download className="w-4 h-4 sm:w-5 sm:h-5 md:h-6 md:w-6" />
+              <Download className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
             </button>
           </div>
         </div>
 
-        <div className="flex-1 px-4 pb-6 sm:px-6 sm:pb-8 md:px-12 lg:px-12 md:pb-12 lg:pb-12">
+        <div className="flex-1 px-4 pb-6 sm:px-6 sm:pb-8 md:px-12 md:pb-12 lg:px-12 lg:pb-12">
           {/* Main editor */}
           <div className="h-full">
             <HighlightedTextEditor
@@ -516,15 +521,13 @@ function Writer() {
       {/* Right Side - Gallery */}
       <div
         ref={galleryContainerRef}
-        className="relative w-full bg-white md:w-1/2 md:sticky md:top-0 md:h-screen min-h-[600px] sm:min-h-[700px]"
+        className="relative min-h-[600px] w-full bg-white sm:min-h-[700px] md:sticky md:top-0 md:h-screen md:w-1/2"
       >
-        <div className="absolute inset-0 p-3 overflow-hidden sm:p-4 custom-scrollbar md:p-6 lg:p-8">
-          {images.length === 0 && !isSearching && text.length === 0 && (
-            <EmptyState />
-          )}
+        <div className="custom-scrollbar absolute inset-0 overflow-hidden p-3 sm:p-4 md:p-6 lg:p-8">
+          {images.length === 0 && !isSearching && text.length === 0 && <EmptyState />}
 
           {isSearching && (
-            <div className="flex items-center justify-center h-64">
+            <div className="flex h-64 items-center justify-center">
               <LoadingDots />
             </div>
           )}
@@ -537,7 +540,7 @@ function Writer() {
                 position={panPosition}
                 setPosition={setPanPosition}
               >
-                {images.map((image, index) => (
+                {images.map((image: any, index: number) => (
                   <ImageCard
                     key={image.id}
                     image={image}
@@ -553,9 +556,9 @@ function Writer() {
           )}
 
           {images.length === 0 && !isSearching && text.length > 0 && (
-            <div className="flex items-center justify-center h-64">
+            <div className="flex h-64 items-center justify-center">
               <div className="text-center text-gray-400">
-                <Search className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <Search className="mx-auto mb-2 h-12 w-12 opacity-50" />
                 <p className="text-sm">No images found</p>
               </div>
             </div>
@@ -563,19 +566,14 @@ function Writer() {
         </div>
 
         {/* Ruler at bottom right corner */}
-        <div className="absolute z-10 hidden bottom-2 right-2 sm:bottom-4 sm:right-4 sm:block">
+        <div className="absolute right-2 bottom-2 z-10 hidden sm:right-4 sm:bottom-4 sm:block">
           <Ruler scale={panScale} />
         </div>
       </div>
 
       {/* Notification */}
       <AnimatePresence>
-        {notification && (
-          <Notification
-            message={notification.message}
-            type={notification.type}
-          />
-        )}
+        {notification && <Notification message={notification.message} type={notification.type} />}
       </AnimatePresence>
 
       {/* Image Viewer */}
@@ -616,3 +614,5 @@ function Writer() {
     </div>
   );
 }
+
+export default Writer;

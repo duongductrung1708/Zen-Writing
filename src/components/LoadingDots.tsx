@@ -6,7 +6,7 @@ export const LoadingDots = () => {
   return (
     <div className="flex items-center justify-center gap-1.5">
       <motion.div
-        className="w-2 h-2 bg-gray-400 rounded-full"
+        className="h-2 w-2 rounded-full bg-gray-400"
         animate={{
           scale: [1, 1.2, 1],
           opacity: [0.5, 1, 0.5],
@@ -18,7 +18,7 @@ export const LoadingDots = () => {
         }}
       />
       <motion.div
-        className="w-2 h-2 bg-gray-400 rounded-full"
+        className="h-2 w-2 rounded-full bg-gray-400"
         animate={{
           scale: [1, 1.2, 1],
           opacity: [0.5, 1, 0.5],
@@ -30,7 +30,7 @@ export const LoadingDots = () => {
         }}
       />
       <motion.div
-        className="w-2 h-2 bg-gray-400 rounded-full"
+        className="h-2 w-2 rounded-full bg-gray-400"
         animate={{
           scale: [1, 1.2, 1],
           opacity: [0.5, 1, 0.5],

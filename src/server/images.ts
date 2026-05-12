@@ -1,8 +1,8 @@
-import { createServerFn } from '@tanstack/react-start';
-import axios from 'axios';
+import { createServerFn } from "@tanstack/react-start";
+import axios from "axios";
 
 // Đây là Server Function - Nó chạy hoàn toàn trên Node.js
-export const getUnsplashImages = createServerFn({ method: 'GET' })
+export const getUnsplashImages = createServerFn({ method: "GET" })
   .inputValidator((keyword: string) => keyword)
   .handler(async ({ data: keyword }) => {
     if (!keyword || keyword.trim().length === 0) {

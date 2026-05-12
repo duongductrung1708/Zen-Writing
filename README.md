@@ -1,145 +1,99 @@
-# ZenWriting
+# 🌿 Zen Writing
 
-A zen-like writing environment where imagery from Unsplash automatically surfaces based on your live input, creating a visual reflection of your thoughts.
+A zen-like, full-stack writing environment where live input triggers a visual reflection of your thoughts. Built with a museum-inspired aesthetic and cutting-edge web technologies.
 
-## Features
+## ✨ New in Version 2.0 (Modernized)
 
-- **Zen Editor**: Borderless textarea with elegant serif typography (EB Garamond)
-- **Dynamic Gallery**: Automatically fetches relevant images as you type
-- **Smooth Animations**: High-end transitions powered by Framer Motion
-- **Secure Backend**: Express.js proxy to protect API credentials
-- **Museum Aesthetics**: Editorial design with off-white backgrounds and charcoal text
+- **Full TypeScript Migration**: 100% type-safe codebase for robust development.
+- **Full-stack Architecture**: Powered by **TanStack Start**, replacing the old separate Backend/Frontend setup.
+- **RPC (Server Functions)**: Native server functions for API security without manual Express setup.
+- **AI Sketch Recognition**: Draw your thoughts on a canvas and let AI (ML5.js) recognize and find images.
+- **Advanced Pan-Zoom Gallery**: Interactively explore images with fluid masonry layout and multi-touch support.
 
-## Tech Stack
+## 🚀 Tech Stack
 
-- **Language**: JavaScript (ES6+)
-- **Frontend**: React.js, React Router, Tailwind CSS, Framer Motion, Lucide React, Axios, Lodash
-- **Backend**: Node.js, Express.js, Axios, CORS
-- **APIs**: Unsplash Search API
-- **Tools**: html2canvas, jsPDF, Vercel Analytics
+- **Framework**: [TanStack Start](https://www.google.com/search?q=https://tanstack.com/router/v1/docs/guide/start/overview) (React 18+)
+- **State Management**: [Zustand](https://github.com/pmndrs/zustand)
+- **Data Fetching**: [TanStack Query](https://tanstack.com/query/latest)
+- **Styling**: Tailwind CSS v4
+- **Animations**: Framer Motion
+- **AI Integration**: ML5.js (MobileNet & DoodleNet models)
+- **PDF Generation**: jsPDF
+- **Deployment**: Vercel
 
-## Setup Instructions
+## 🛠️ Setup Instructions
 
-### Backend Setup
+### Prerequisites
 
-1. Navigate to the backend directory:
+- Node.js 18.x or higher
+- An Unsplash Developer Access Key
+
+### Local Development
+
+1. **Clone the repository**:
 
 ```bash
-cd backend
+git clone https://github.com/your-username/Zen-Writing.git
+cd Zen-Writing
+
 ```
 
-2. Install dependencies:
+2. **Install dependencies**:
 
 ```bash
 npm install
-```
-
-3. Create a `.env` file from the example:
-
-```bash
-cp .env.example .env
-```
-
-4. Get your Unsplash Access Key:
-   - Visit [Unsplash Developers](https://unsplash.com/developers)
-   - Create a new application
-   - Copy your Access Key
-
-5. Add your Unsplash Access Key to `.env`:
 
 ```
+
+3. **Configure Environment Variables**:
+   Create a `.env` file in the root directory:
+
+```env
 UNSPLASH_ACCESS_KEY=your_access_key_here
-PORT=3001
+
 ```
 
-6. Start the backend server:
+4. **Start the development server**:
 
 ```bash
-npm start
-# or for development with auto-reload:
 npm run dev
-```
-
-The backend will run on `http://localhost:3001`
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-
-```bash
-cd frontend
-```
-
-2. Install dependencies:
-
-```bash
-npm install
-```
-
-3. Create a `.env` file (optional, defaults to localhost:3001):
-
-```bash
-cp .env.example .env
-```
-
-4. Update `.env` if your backend runs on a different port:
 
 ```
-REACT_APP_API_URL=http://localhost:3001
+
+Open `http://localhost:3000` to see the application.
+
+## 🧠 How It Works
+
+1. **Editorial Editor**: A borderless writing space using **EB Garamond** typography. It features a custom-built `contentEditable` engine with real-time keyword highlighting.
+2. **Smart Extraction**: As you type, the system debounces input (800ms) and extracts meaningful keywords.
+3. **Secure RPC Calls**: Keywords are sent to Server Functions which securely query the Unsplash API, protecting your keys from the client side.
+4. **Collision-Free Masonry**: A custom JavaScript algorithm calculates random, non-overlapping positions for every image in the gallery.
+5. **Sketch-to-Search**: Integrated Canvas allows you to draw. ML5.js analyzes the pixels and converts your doodle into a searchable keyword.
+
+## 📂 Project Structure
+
+```text
+Zen-Writing/
+├── src/
+│   ├── components/       # UI Components (DrawingCanvas, PDFPreview, etc.)
+│   ├── hooks/            # Custom TS Hooks (useImageRecognition, useQuery)
+│   ├── routes/           # TanStack Router file-based routing
+│   ├── server/           # Server Functions (RPC - Unsplash API logic)
+│   ├── store/            # Zustand global state (WriterStore)
+│   └── utils/            # Logic helpers (Keywords, Masonry Layout)
+├── public/               # Static assets (Favicon, Logos)
+├── app.config.ts         # TanStack Start configuration
+├── vercel.json           # Vercel deployment & rewrite rules
+└── tsconfig.json         # TypeScript configuration
+
 ```
 
-5. Start the development server:
+## 🎨 Design Philosophy
 
-```bash
-npm start
-```
+- **Minimalism**: Clean interface focusing 100% on the creative flow.
+- **Editorial Aesthetics**: Museum-style off-white backgrounds (`#F5F5F1`) and charcoal text.
+- **Seamless Feedback**: Every interaction, from a keyword highlight to an AI prediction, is fluidly animated.
 
-The frontend will run on `http://localhost:3000`
-
-## How It Works
-
-1. **Writing**: Type in the left panel. The editor uses EB Garamond serif font for a classic, editorial feel.
-
-2. **Keyword Extraction**: After 800ms of inactivity, the app extracts the last meaningful word (length > 3 characters) from your text.
-
-3. **Image Fetching**: The extracted keyword is sent to the backend, which securely queries Unsplash API with:
-   - 6 images per search
-   - Portrait orientation
-   - High content filter
-
-4. **Dynamic Gallery**: Images appear on the right side with smooth fade-in and scale-up animations. Old images fade out with a blur effect.
-
-5. **Empty States**: When no text is entered, a subtle "Start Writing" watermark appears.
-
-## Project Structure
-
-```
-AuraScribe/
-├── backend/
-│   ├── server.js          # Express API proxy
-│   ├── .env.example       # Environment variables template
-│   └── package.json       # Backend dependencies
-├── frontend/
-│   ├── src/
-│   │   ├── App.js         # Main React component
-│   │   ├── index.js       # React entry point
-│   │   └── index.css      # Tailwind & custom styles
-│   ├── public/
-│   │   └── index.html     # HTML template
-│   ├── tailwind.config.js # Tailwind configuration
-│   ├── postcss.config.js  # PostCSS configuration
-│   ├── .env.example       # Frontend env template
-│   └── package.json       # Frontend dependencies
-└── README.md              # This file
-```
-
-## Design Philosophy
-
-- **Minimalism**: Clean, uncluttered interface focusing on writing
-- **Editorial Aesthetics**: Museum-style typography and spacing
-- **Smooth Interactions**: Every transition is carefully animated
-- **Visual Reflection**: Images serve as a mirror to your thoughts
-
-## License
+## 📄 License
 
 MIT

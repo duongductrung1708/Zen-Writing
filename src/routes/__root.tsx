@@ -28,12 +28,11 @@ export const Route = createRootRoute({
         <HeadContent />
       </head>
       <body className="antialiased" suppressHydrationWarning>
-        
         {/* 3. Bọc toàn bộ các trang con (Outlet) vào trong Provider */}
         <QueryClientProvider client={queryClient}>
-          <Outlet /> 
+          <Outlet />
         </QueryClientProvider>
-        
+
         <Analytics />
         <Scripts />
       </body>

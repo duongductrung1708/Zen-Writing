@@ -17,7 +17,7 @@ function Home() {
           transition={{ duration: 0.6 }}
           tabIndex={1}
           title="Writing with Open Access"
-          className="signum-button mb-8 flex items-center gap-3 rounded text-left focus:outline-none focus:ring-2 focus:ring-stone-900 focus:ring-offset-2 focus:ring-offset-stone-50 md:mb-12"
+          className="signum-button mb-8 flex items-center gap-3 rounded text-left focus:ring-2 focus:ring-stone-900 focus:ring-offset-2 focus:ring-offset-stone-50 focus:outline-none md:mb-12"
         >
           <img
             src="/assets/zen_logo.png"
@@ -42,7 +42,7 @@ function Home() {
             tabIndex={1}
             className="title mb-8 font-serif text-4xl leading-tight text-stone-900 md:mb-12 md:text-5xl lg:text-6xl"
             style={{
-              fontSize: "4.5rem",
+              fontSize: "4rem",
               fontWeight: "600",
               fontStyle: "normal",
               color: "#212738",
@@ -65,7 +65,7 @@ function Home() {
               tabIndex={1}
               id="start-cta"
               to="/write"
-              className="action-start action-button mb-6 inline-block rounded-sm bg-stone-900 px-8 py-4 font-sans text-lg text-stone-50 transition-all duration-200 hover:bg-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-900 focus:ring-offset-2 focus:ring-offset-stone-50 active:bg-stone-700 md:text-xl"
+              className="action-start action-button mb-6 inline-block rounded-sm bg-stone-900 px-8 py-4 font-sans text-lg text-stone-50 transition-all duration-200 hover:bg-stone-800 focus:ring-2 focus:ring-stone-900 focus:ring-offset-2 focus:ring-offset-stone-50 focus:outline-none active:bg-stone-700 md:text-xl"
               style={{
                 textTransform: "uppercase",
                 fontSize: "1rem",

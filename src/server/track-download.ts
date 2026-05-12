@@ -1,8 +1,8 @@
-import { createServerFn } from '@tanstack/react-start';
-import axios from 'axios';
+import { createServerFn } from "@tanstack/react-start";
+import axios from "axios";
 
 // Định nghĩa hàm Server để track download
-export const trackUnsplashDownload = createServerFn({ method: 'POST' })
+export const trackUnsplashDownload = createServerFn({ method: "POST" })
   .inputValidator((url: string) => url) // Nhận vào cái link download_location của ảnh
   .handler(async ({ data: downloadUrl }) => {
     if (!downloadUrl) {

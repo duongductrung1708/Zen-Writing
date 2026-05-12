@@ -1,23 +1,38 @@
 import React, { useRef, useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
+import { Position } from "@/utils/layout"; // Import lại khuôn mẫu Position đã tạo trước đó
+
+// 1. Khai báo Khuôn mẫu cho các Props của Component
+interface PanZoomContainerProps {
+  children: React.ReactNode;
+  scale: number;
+  setScale: React.Dispatch<React.SetStateAction<number>>;
+  position: Position;
+  setPosition: React.Dispatch<React.SetStateAction<Position>>;
+}
 
 // Pan Zoom Container Component
-export const PanZoomContainer = ({
+export const PanZoomContainer: React.FC<PanZoomContainerProps> = ({
   children,
   scale,
   setScale,
   position,
   setPosition,
 }) => {
-  const containerRef = useRef(null);
-  const [isPanning, setIsPanning] = useState(false);
-  const lastPanPointRef = useRef({ x: 0, y: 0 });
-  const lastTouchDistanceRef = useRef(0);
-  const lastTouchCenterRef = useRef({ x: 0, y: 0 });
-  const initialScaleRef = useRef(1);
+  // 2. Định danh rõ ràng ref này dùng cho thẻ Div
+  const containerRef = useRef<HTMLDivElement>(null);
 
+  const [isPanning, setIsPanning] = useState<boolean>(false);
+
+  // 3. Ép kiểu chuẩn cho các biến lưu trữ tọa độ
+  const lastPanPointRef = useRef<Position>({ x: 0, y: 0 });
+  const lastTouchDistanceRef = useRef<number>(0);
+  const lastTouchCenterRef = useRef<Position>({ x: 0, y: 0 });
+  const initialScaleRef = useRef<number>(1);
+
+  // 4. Định danh kiểu Sự kiện (Event) cho từng thao tác
   const handleWheel = useCallback(
-    (e) => {
+    (e: WheelEvent) => {
       e.preventDefault();
       const delta = e.deltaY * -0.001;
       setScale((prevScale) => Math.min(Math.max(0.5, prevScale + delta), 3));
@@ -25,7 +40,7 @@ export const PanZoomContainer = ({
     [setScale]
   );
 
-  const handleMouseDown = useCallback((e) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button === 0) {
       // Left mouse button
       setIsPanning(true);
@@ -34,7 +49,7 @@ export const PanZoomContainer = ({
   }, []);
 
   const handleMouseMove = useCallback(
-    (e) => {
+    (e: MouseEvent) => {
       if (isPanning) {
         const deltaX = e.clientX - lastPanPointRef.current.x;
         const deltaY = e.clientY - lastPanPointRef.current.y;
@@ -53,13 +68,14 @@ export const PanZoomContainer = ({
   }, []);
 
   // Touch event handlers for mobile
-  const getTouchDistance = (touch1, touch2) => {
+  // 5. Định danh chuẩn đối tượng Touch của DOM
+  const getTouchDistance = (touch1: Touch, touch2: Touch): number => {
     const dx = touch2.clientX - touch1.clientX;
     const dy = touch2.clientY - touch1.clientY;
     return Math.sqrt(dx * dx + dy * dy);
   };
 
-  const getTouchCenter = (touch1, touch2) => {
+  const getTouchCenter = (touch1: Touch, touch2: Touch): Position => {
     return {
       x: (touch1.clientX + touch2.clientX) / 2,
       y: (touch1.clientY + touch2.clientY) / 2,
@@ -67,7 +83,7 @@ export const PanZoomContainer = ({
   };
 
   const handleTouchStart = useCallback(
-    (e) => {
+    (e: TouchEvent) => {
       if (e.touches.length === 1) {
         // Single touch - start panning
         setIsPanning(true);
@@ -89,7 +105,7 @@ export const PanZoomContainer = ({
   );
 
   const handleTouchMove = useCallback(
-    (e) => {
+    (e: TouchEvent) => {
       e.preventDefault();
       if (e.touches.length === 1 && isPanning) {
         // Single touch - panning
@@ -111,12 +127,8 @@ export const PanZoomContainer = ({
         const currentCenter = getTouchCenter(touch1, touch2);
 
         if (lastTouchDistanceRef.current > 0) {
-          const scaleChange =
-            currentDistance / lastTouchDistanceRef.current;
-          const newScale = Math.min(
-            Math.max(0.5, initialScaleRef.current * scaleChange),
-            3
-          );
+          const scaleChange = currentDistance / lastTouchDistanceRef.current;
+          const newScale = Math.min(Math.max(0.5, initialScaleRef.current * scaleChange), 3);
           setScale(newScale);
 
           // Adjust position to zoom towards touch center
@@ -180,7 +192,7 @@ export const PanZoomContainer = ({
     <div
       ref={containerRef}
       onMouseDown={handleMouseDown}
-      className="w-full h-full overflow-hidden cursor-grab active:cursor-grabbing"
+      className="h-full w-full cursor-grab overflow-hidden active:cursor-grabbing"
       style={{ touchAction: "none" }}
     >
       <motion.div
@@ -190,7 +202,7 @@ export const PanZoomContainer = ({
           scale: scale,
         }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="relative w-full h-full origin-center"
+        className="relative h-full w-full origin-center"
         style={{
           minWidth: "200%",
           minHeight: "200%",
