@@ -614,5 +614,3 @@ function Writer() {
     </div>
   );
 }
-
-export default Writer;

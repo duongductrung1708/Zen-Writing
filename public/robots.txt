@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://zen-writing.vercel.app/sitemap.xml
