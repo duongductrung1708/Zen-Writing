@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://zen-writing.vercel.app/sitemap.xml
+Sitemap: https://han-zen-writing.vercel.app/sitemap.xml
