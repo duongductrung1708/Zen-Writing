@@ -55,13 +55,13 @@ export const Route = createRootRoute({
 
         {/* Open Graph (Dành cho Facebook, Zalo, Discord...) */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://zen-writing.vercel.app/" />
+        <meta property="og:url" content="https://han-zen-writing.vercel.app/" />
         <meta property="og:title" content="Zen Writing | Focus on your thoughts" />
         <meta
           property="og:description"
           content="Turn your words into visual art in real-time. A sanctuary for creative writers."
         />
-        <meta property="og:image" content="https://zen-writing.vercel.app/assets/og-image.jpg" />
+        <meta property="og:image" content="https://han-zen-writing.vercel.app/assets/og-image.jpg" />
 
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
@@ -70,7 +70,7 @@ export const Route = createRootRoute({
           name="twitter:description"
           content="Turn your words into visual art in real-time. A sanctuary for creative writers."
         />
-        <meta name="twitter:image" content="https://zen-writing.vercel.app/assets/og-image.jpg" />
+        <meta name="twitter:image" content="https://han-zen-writing.vercel.app/assets/og-image.jpg" />
 
         <meta name="theme-color" content="#F5F5F1" />
 
