@@ -12,92 +12,82 @@ export interface Position {
 // Hình chữ nhật (Rect) sẽ bao gồm cả tọa độ và kích thước
 interface Rect extends Position, ImageSize {}
 
-// Random layout helper - calculates random positions with collision detection
 export const calculateMasonryLayout = (
-  images: any[], // Dùng any[] tạm thời, sau này có model Image chuẩn thì thay vào
+  images: any[], // Tạm dùng any[], sẽ thay bằng ZenImage sau
   imageSizes: ImageSize[]
 ): Position[] => {
   const positions: Position[] = new Array(images.length);
-  const placedRects: Rect[] = []; // Track placed rectangles for collision detection
-  const gap = 20; // Minimum gap between images
+  const placedRects: Rect[] = []; // Theo dõi các ảnh đã đặt để check va chạm
+  const PADDING = 80; // Khoảng không gian "thở" giữa các bức ảnh chuẩn Zen
 
-  // Responsive canvas width based on screen size
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
-  const isTablet = typeof window !== "undefined" && window.innerWidth < 768;
-  let canvasWidth = isMobile ? 400 : isTablet ? 600 : 1200; // Canvas width for random placement
-  let canvasHeight = 2000; // Canvas height for random placement
-  const maxAttempts = 200; // Increased attempts to find a non-overlapping position
+  // Lấy điểm neo trung tâm (Bắt đầu thả ảnh từ giữa khu vực Gallery)
+  const startX = typeof window !== "undefined" ? window.innerWidth / 4 : 400;
+  const startY = typeof window !== "undefined" ? window.innerHeight / 4 : 300;
 
-  // Sort images by area (largest first) for better placement, but keep original index
+  // Giữ lại thuật toán tối ưu của bạn: Ưu tiên xếp ảnh to (diện tích lớn) trước
   const imagesWithSizes = images
     .map((image, index) => ({
-      image,
-      originalIndex: index,
+      originalIndex: index, // Giữ index gốc để map đúng với state của React
       size: imageSizes[index] || { width: 300, height: 400 },
       area: (imageSizes[index]?.width || 300) * (imageSizes[index]?.height || 400),
     }))
     .sort((a, b) => b.area - a.area);
 
-  // Helper function to check collision with proper gap
-  const checkCollision = (
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    rects: Rect[]
-  ): boolean => {
-    return rects.some((rect) => {
-      // Check if rectangles overlap (with gap)
-      const hasHorizontalOverlap = !(x + width + gap <= rect.x || x >= rect.x + rect.width + gap);
-      const hasVerticalOverlap = !(y + height + gap <= rect.y || y >= rect.y + rect.height + gap);
+  // Hàm kiểm tra va chạm (Đã tích hợp PADDING)
+  const checkCollision = (x: number, y: number, width: number, height: number): boolean => {
+    return placedRects.some((rect) => {
+      // Logic: Nếu KHÔNG nằm hoàn toàn ở trái, phải, trên, hoặc dưới -> Có va chạm
+      const hasHorizontalOverlap = !(
+        x + width + PADDING <= rect.x || x >= rect.x + rect.width + PADDING
+      );
+      const hasVerticalOverlap = !(
+        y + height + PADDING <= rect.y || y >= rect.y + rect.height + PADDING
+      );
       return hasHorizontalOverlap && hasVerticalOverlap;
     });
   };
 
-  // Helper function to find a random position
-  const findRandomPosition = (width: number, height: number): Position => {
+  // Vòng lặp thả ảnh
+  imagesWithSizes.forEach((item) => {
+    const { size, originalIndex } = item;
+    let placed = false;
     let attempts = 0;
-    while (attempts < maxAttempts) {
-      const x = Math.random() * (canvasWidth - width - gap * 2) + gap;
-      const y = Math.random() * (canvasHeight - height - gap * 2) + gap;
+    let radius = 20; // Bán kính dò tìm ban đầu rất nhỏ để tụ quanh tâm
 
-      if (!checkCollision(x, y, width, height, placedRects)) {
-        return { x, y };
-      }
-      attempts++;
-    }
+    // Dò tìm vị trí trống theo đường xoắn ốc lan dần ra xa
+    while (!placed && attempts < 2000) {
+      const angle = Math.random() * Math.PI * 2;
+      const r = Math.random() * radius;
 
-    // Fallback: Try grid-based placement if random fails
-    const gridSize = 50;
-    for (let gridY = gap; gridY < canvasHeight - height - gap; gridY += gridSize) {
-      for (let gridX = gap; gridX < canvasWidth - width - gap; gridX += gridSize) {
-        if (!checkCollision(gridX, gridY, width, height, placedRects)) {
-          return { x: gridX, y: gridY };
+      const targetX = startX + r * Math.cos(angle);
+      const targetY = startY + r * Math.sin(angle);
+
+      if (!checkCollision(targetX, targetY, size.width, size.height)) {
+        // Chốt vị trí và lưu vào mảng dựa trên index gốc
+        positions[originalIndex] = { x: targetX, y: targetY };
+        placedRects.push({
+          x: targetX,
+          y: targetY,
+          width: size.width,
+          height: size.height,
+        });
+        placed = true;
+      } else {
+        // Nếu đè lên ảnh khác, tăng số lần thử và nới rộng bán kính
+        attempts++;
+        if (attempts % 15 === 0) {
+          radius += 50;
         }
       }
     }
 
-    // Last resort: Expand canvas and place at bottom
-    const newY = canvasHeight + gap;
-    canvasHeight = newY + height + gap;
-    return { x: gap, y: newY };
-  };
-
-  // Place images (sorted by size for better collision avoidance)
-  imagesWithSizes.forEach((item) => {
-    const { size, originalIndex } = item;
-    const position = findRandomPosition(size.width, size.height);
-
-    // Store position at original index to maintain order
-    positions[originalIndex] = { x: position.x, y: position.y };
-
-    // Add to placed rectangles for collision detection
-    placedRects.push({
-      x: position.x,
-      y: position.y,
-      width: size.width,
-      height: size.height,
-    });
+    // Fallback an toàn: Nếu dò 2000 lần vẫn kẹt (rất hiếm), xếp nối tiếp xuống dưới
+    if (!placed) {
+      const fallbackX = startX + originalIndex * 150;
+      const fallbackY = startY + originalIndex * 150;
+      positions[originalIndex] = { x: fallbackX, y: fallbackY };
+      placedRects.push({ x: fallbackX, y: fallbackY, width: size.width, height: size.height });
+    }
   });
 
   return positions;
