@@ -1,72 +1,74 @@
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getKeywordColor } from "@/utils/keywords";
-import { getUnsplashImages } from "@/server/images";
-
-// 1. Import khuôn mẫu ZenImage mà chúng ta đã vất vả định nghĩa ở Store
+import { getUnsplashImages } from "@/server/images"; 
 import { ZenImage } from "@/store/writerStore";
 
 export const useKeywordImagesQuery = () => {
   const queryClient = useQueryClient();
 
-  // 2. Ép kiểu đầu vào (keywords là mảng string) và đầu ra (trả về mảng ZenImage)
-  const fetchImagesByKeywords = useCallback(async (keywords: string[]): Promise<ZenImage[]> => {
-    if (!keywords || keywords.length === 0) {
-      return [];
-    }
-
-    const searchPromises = keywords.map(async (keyword: string, keywordIndex: number) => {
-      try {
-        const images = await getUnsplashImages({ data: keyword });
-
-        if (images && images.length > 0) {
-          const keywordColor = getKeywordColor(keyword);
-          const randomIndex = Math.floor(Math.random() * images.length);
-          const randomImage = images[randomIndex];
-
-          return {
-            // Ép kiểu object này cho chuẩn form ZenImage
-            image: {
-              ...randomImage,
-              keyword,
-              keywordColor,
-            } as ZenImage,
-            keywordIndex,
-          };
-        }
-
-        return null;
-      } catch (error) {
-        return null;
+  const fetchImagesByKeywords = useCallback(
+    async (keywords: string[]): Promise<ZenImage[]> => {
+      if (!keywords || keywords.length === 0) {
+        return [];
       }
-    });
 
-    const results = await Promise.all(searchPromises);
+      // Lặp qua từng từ khóa
+      const searchPromises = keywords.map(async (keyword: string, keywordIndex: number) => {
+        try {
+          // BÍ QUYẾT: Dùng React Query để CACHE TỪNG TỪ KHÓA RIÊNG BIỆT
+          const cachedImage = await queryClient.fetchQuery({
+            queryKey: ["imageByKeyword", keyword], // Chìa khóa độc lập cho từng từ
+            queryFn: async () => {
+              // Hàm này CHỈ CHẠY khi từ khóa này chưa từng được tìm kiếm trước đây
+              const images = await getUnsplashImages({ data: keyword });
 
-    // 3. Kỹ thuật "Type Guard" trong TS để lọc bỏ giá trị null an toàn
-    const imagesWithOrder = results
-      .filter((result): result is { image: ZenImage; keywordIndex: number } => result !== null)
-      .sort((a, b) => a.keywordIndex - b.keywordIndex)
-      .map((result) => result.image);
+              if (images && images.length > 0) {
+                const keywordColor = getKeywordColor(keyword);
+                const randomIndex = Math.floor(Math.random() * images.length);
+                const randomImage = images[randomIndex];
 
-    if (imagesWithOrder.length === 0) {
-      return [];
-    }
+                return {
+                  ...randomImage,
+                  keyword,
+                  keywordColor,
+                } as ZenImage;
+              }
+              return null;
+            },
+            // Giữ cache vĩnh viễn trong phiên làm việc này, không bao giờ fetch lại từ cũ!
+            staleTime: Infinity, 
+            gcTime: 1000 * 60 * 60, // Dọn rác bộ nhớ sau 1 tiếng
+            retry: 0,
+          });
 
-    return imagesWithOrder;
-  }, []);
+          if (cachedImage) {
+            return {
+              image: cachedImage,
+              keywordIndex, // Giữ nguyên vị trí của từ khóa trong văn bản
+            };
+          }
 
-  const fetchWithCache = useCallback(
-    (keywords: string[]): Promise<ZenImage[]> =>
-      queryClient.fetchQuery({
-        queryKey: ["imagesByKeywords", keywords],
-        queryFn: () => fetchImagesByKeywords(keywords),
-        staleTime: 5 * 60 * 1000,
-        gcTime: 10 * 60 * 1000,
-        retry: 0,
-      }),
-    [queryClient, fetchImagesByKeywords]
+          return null;
+        } catch (error) {
+          return null; 
+        }
+      });
+
+      // Chờ toàn bộ các từ (cả cũ lẫn mới) xử lý xong
+      const results = await Promise.all(searchPromises);
+      
+      // Sắp xếp lại ảnh cho đúng thứ tự xuất hiện của từ khóa trong văn bản
+      const imagesWithOrder = results
+        .filter((result): result is { image: ZenImage; keywordIndex: number } => result !== null)
+        .sort((a, b) => a.keywordIndex - b.keywordIndex)
+        .map((result) => result.image);
+
+      return imagesWithOrder;
+    },
+    [queryClient]
   );
 
-  return { fetchImagesByKeywords: fetchWithCache };
+  // Không cần hàm bọc fetchWithCache bên ngoài nữa vì ta đã cache ở lõi rồi
+  return { fetchImagesByKeywords };
 };

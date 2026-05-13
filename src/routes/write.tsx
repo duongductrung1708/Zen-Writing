@@ -20,6 +20,7 @@ import { HighlightedTextEditor } from "@/components/HighlightedTextEditor";
 import { PDFPreview } from "@/components/PDFPreview";
 import { ImageViewer } from "@/components/ImageViewer";
 import { DrawingCanvas } from "@/components/DrawingCanvas";
+import { ExamplesDropdown } from "@/components/ExamplesDropdown";
 import { useWriterStore } from "@/store/writerStore";
 import { useKeywordImagesQuery } from "@/hooks/useKeywordImagesQuery";
 
@@ -91,10 +92,6 @@ function Writer() {
 
         if (uniqueImages.length > 0) {
           setImages(uniqueImages);
-          // Reset image sizes and positions when new images are loaded
-          setImageSizes({});
-          setImagePositions([]);
-
           // Update keywords map with colors
           const newKeywordsMap: Record<string, string> = {};
           keywords.forEach((keyword: string) => {
@@ -352,135 +349,7 @@ function Writer() {
           </div>
 
           {/* Examples - Center */}
-          <div className="relative flex flex-1 justify-center">
-            <div className="examples-dropdown-container relative">
-              <button
-                type="button"
-                tabIndex={1}
-                onClick={() => setShowExamples((prev: boolean) => !prev)}
-                className="group inline-flex flex-col items-center gap-0.5 text-[10px] tracking-[0.25em] text-gray-600 uppercase sm:gap-1 sm:text-[11px]"
-              >
-                <span className="text-[0.7rem] font-semibold sm:text-[0.8rem]">Examples</span>
-                <span className="relative h-px w-full overflow-hidden bg-gray-200">
-                  <span className="absolute inset-0 origin-center scale-x-0 bg-gray-600 transition-transform duration-200 group-hover:scale-x-100" />
-                </span>
-              </button>
-
-              {/* Examples Dropdown */}
-              <AnimatePresence>
-                {showExamples && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.15 }}
-                    className="custom-scrollbar absolute top-full z-50 mt-2 max-h-[60vh] w-[calc(100vw-2rem)] max-w-96 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-xl sm:w-96"
-                    style={{ left: "-205%" }}
-                  >
-                    <div className="space-y-2 p-3 text-xs text-gray-700 sm:space-y-3 sm:p-4 sm:text-sm">
-                      <button
-                        type="button"
-                        tabIndex={-1}
-                        onClick={() => {
-                          setText(
-                            "Give me a quiet, reflective writing prompt about memory and place."
-                          );
-                          setShowExamples(false);
-                        }}
-                        className="text-sm underline decoration-gray-400 underline-offset-4 transition-colors hover:text-red-600 hover:decoration-gray-700 sm:text-lg"
-                        style={{
-                          textDecoration: "none",
-                          textAlign: "center",
-                          display: "block",
-                          margin: "0 auto",
-                          marginTop: "0.75rem",
-                        }}
-                      >
-                        Give me a writing prompt
-                      </button>
-                      <p
-                        className="pt-2 text-gray-500"
-                        style={{
-                          textAlign: "center",
-                          display: "block",
-                          margin: "0 auto",
-                          fontSize: "1.2rem",
-                          marginTop: "1rem",
-                        }}
-                      >
-                        Popular texts you can explore:
-                      </p>
-                      <ul
-                        className="space-y-2"
-                        style={{ marginTop: "1rem", listStyleType: "circle", marginLeft: "1rem" }}
-                      >
-                        <li>
-                          <button
-                            type="button"
-                            tabIndex={-1}
-                            onClick={() => {
-                              setText(
-                                'After reading "Dear One Absent This Long While" by Lisa Olstein, write a letter to someone you haven\'t spoken to in years.'
-                              );
-                              setShowExamples(false);
-                            }}
-                            className="w-full py-1 text-left transition-colors hover:text-red-600"
-                          >
-                            <em>Dear One Absent This Long While</em> by Lisa Olstein
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            tabIndex={-1}
-                            onClick={() => {
-                              setText(
-                                'After reading "Sticks" by George Saunders, write a very short story about a family ritual told in less than 300 words.'
-                              );
-                              setShowExamples(false);
-                            }}
-                            className="w-full py-1 text-left transition-colors hover:text-red-600"
-                          >
-                            <em>Sticks</em> by George Saunders
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            tabIndex={-1}
-                            onClick={() => {
-                              setText(
-                                'After reading "Tomorrow at Dawn" by Victor Hugo, write a poem that describes a journey to meet someone important.'
-                              );
-                              setShowExamples(false);
-                            }}
-                            className="w-full py-1 text-left transition-colors hover:text-red-600"
-                          >
-                            <em>Tomorrow at Dawn</em> by Victor Hugo
-                          </button>
-                        </li>
-                        <li>
-                          <button
-                            type="button"
-                            tabIndex={-1}
-                            onClick={() => {
-                              setText(
-                                'After reading "The old pond" by Matsuo Bashō, write a three-line poem that captures a tiny, quiet moment.'
-                              );
-                              setShowExamples(false);
-                            }}
-                            className="w-full py-1 text-left transition-colors hover:text-red-600"
-                          >
-                            <em>The old pond</em> by Matsuo Bashō
-                          </button>
-                        </li>
-                      </ul>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
+          <ExamplesDropdown />
 
           {/* Action Buttons - Right */}
           <div className="flex shrink-0 items-center gap-3">
