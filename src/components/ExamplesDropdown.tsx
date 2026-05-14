@@ -12,7 +12,7 @@ const RANDOM_PROMPTS = [
   "Write a reflection on the fleeting nature of autumn leaves.",
   "A letter to someone you only met once on a long train journey.",
   "Detail the exact moment the sun dips below the horizon on a cold day.",
-  "Describe the texture of silence in an empty museum."
+  "Describe the texture of silence in an empty museum.",
 ];
 
 export const ExamplesDropdown: React.FC = () => {

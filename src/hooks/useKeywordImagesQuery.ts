@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getKeywordColor } from "@/utils/keywords";
-import { getUnsplashImages } from "@/server/images"; 
+import { getUnsplashImages } from "@/server/images";
 import { ZenImage } from "@/store/writerStore";
 
 export const useKeywordImagesQuery = () => {
@@ -37,7 +37,7 @@ export const useKeywordImagesQuery = () => {
               return null;
             },
             // Giữ cache vĩnh viễn trong phiên làm việc này, không bao giờ fetch lại từ cũ!
-            staleTime: Infinity, 
+            staleTime: Infinity,
             gcTime: 1000 * 60 * 60, // Dọn rác bộ nhớ sau 1 tiếng
             retry: 0,
           });
@@ -51,13 +51,13 @@ export const useKeywordImagesQuery = () => {
 
           return null;
         } catch (error) {
-          return null; 
+          return null;
         }
       });
 
       // Chờ toàn bộ các từ (cả cũ lẫn mới) xử lý xong
       const results = await Promise.all(searchPromises);
-      
+
       // Sắp xếp lại ảnh cho đúng thứ tự xuất hiện của từ khóa trong văn bản
       const imagesWithOrder = results
         .filter((result): result is { image: ZenImage; keywordIndex: number } => result !== null)

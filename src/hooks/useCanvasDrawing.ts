@@ -69,26 +69,29 @@ export const useCanvasDrawing = () => {
     setHistoryIndex((prev) => prev + 1);
   }, [historyIndex]);
 
-  const startDrawing = useCallback((e: any) => {
-    if (e.cancelable) e.preventDefault();
-    isDrawingRef.current = true;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  const startDrawing = useCallback(
+    (e: any) => {
+      if (e.cancelable) e.preventDefault();
+      isDrawingRef.current = true;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const clientX = e.clientX || (e.touches && e.touches[0]?.clientX);
-    const clientY = e.clientY || (e.touches && e.touches[0]?.clientY);
-    if (clientX === undefined || clientY === undefined) return;
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.clientX || (e.touches && e.touches[0]?.clientX);
+      const clientY = e.clientY || (e.touches && e.touches[0]?.clientY);
+      if (clientX === undefined || clientY === undefined) return;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.strokeStyle = brushColor;
-    ctx.lineWidth = brushSize;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.beginPath();
-    ctx.moveTo(clientX - rect.left, clientY - rect.top);
-  }, [brushColor, brushSize]);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.strokeStyle = brushColor;
+      ctx.lineWidth = brushSize;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      ctx.moveTo(clientX - rect.left, clientY - rect.top);
+    },
+    [brushColor, brushSize]
+  );
 
   const draw = useCallback((e: any) => {
     if (!isDrawingRef.current) return;
@@ -107,13 +110,16 @@ export const useCanvasDrawing = () => {
     ctx.stroke();
   }, []);
 
-  const stopDrawing = useCallback((e?: any) => {
-    if (e && e.cancelable) e.preventDefault();
-    if (isDrawingRef.current) {
-      requestAnimationFrame(() => saveToHistory());
-    }
-    isDrawingRef.current = false;
-  }, [saveToHistory]);
+  const stopDrawing = useCallback(
+    (e?: any) => {
+      if (e && e.cancelable) e.preventDefault();
+      if (isDrawingRef.current) {
+        requestAnimationFrame(() => saveToHistory());
+      }
+      isDrawingRef.current = false;
+    },
+    [saveToHistory]
+  );
 
   const undo = useCallback(() => {
     if (historyIndex > 0) {
@@ -176,10 +182,18 @@ export const useCanvasDrawing = () => {
 
   return {
     canvasRef,
-    brushSize, setBrushSize,
-    brushColor, setBrushColor,
-    historyIndex, historyLength: history.length,
-    startDrawing, draw, stopDrawing,
-    undo, redo, clearCanvas, saveDrawing
+    brushSize,
+    setBrushSize,
+    brushColor,
+    setBrushColor,
+    historyIndex,
+    historyLength: history.length,
+    startDrawing,
+    draw,
+    stopDrawing,
+    undo,
+    redo,
+    clearCanvas,
+    saveDrawing,
   };
 };

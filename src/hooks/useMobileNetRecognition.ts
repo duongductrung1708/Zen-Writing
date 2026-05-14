@@ -43,7 +43,7 @@ export const useDoodleRecognition = (
       }
     };
     loadML5();
-    
+
     return () => {
       if (recognitionTimeoutRef.current) clearTimeout(recognitionTimeoutRef.current);
     };
@@ -63,8 +63,12 @@ export const useDoodleRecognition = (
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     let hasContent = false;
     for (let i = 0; i < imageData.length; i += 4) {
-      if (!(imageData[i] === 255 && imageData[i + 1] === 255 && imageData[i + 2] === 255) && imageData[i + 3] > 0) {
-        hasContent = true; break;
+      if (
+        !(imageData[i] === 255 && imageData[i + 1] === 255 && imageData[i + 2] === 255) &&
+        imageData[i + 3] > 0
+      ) {
+        hasContent = true;
+        break;
       }
     }
 
@@ -109,14 +113,21 @@ export const useDoodleRecognition = (
   const triggerAutoRecognize = useCallback(() => {
     if (!autoRecognize || !classifierRef.current) return;
     if (recognitionTimeoutRef.current) clearTimeout(recognitionTimeoutRef.current);
-    
+
     recognitionTimeoutRef.current = setTimeout(() => {
       recognizeDrawing();
     }, 500);
   }, [autoRecognize, recognizeDrawing]);
 
   return {
-    isRecognizing, predictions, error, setPredictions, setError,
-    autoRecognize, setAutoRecognize, recognizeDrawing, triggerAutoRecognize
+    isRecognizing,
+    predictions,
+    error,
+    setPredictions,
+    setError,
+    autoRecognize,
+    setAutoRecognize,
+    recognizeDrawing,
+    triggerAutoRecognize,
   };
 };

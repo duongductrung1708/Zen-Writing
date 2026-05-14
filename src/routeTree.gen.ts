@@ -8,79 +8,115 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as WriteRouteImport } from './routes/write'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as rootRouteImport } from "./routes/__root";
+import { Route as WriteRouteImport } from "./routes/write";
+import { Route as PrivacyRouteImport } from "./routes/privacy";
+import { Route as FaqRouteImport } from "./routes/faq";
+import { Route as IndexRouteImport } from "./routes/index";
 
 const WriteRoute = WriteRouteImport.update({
-  id: '/write',
-  path: '/write',
+  id: "/write",
+  path: "/write",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: "/privacy",
+  path: "/privacy",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const FaqRoute = FaqRouteImport.update({
+  id: "/faq",
+  path: "/faq",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/write': typeof WriteRoute
+  "/": typeof IndexRoute;
+  "/faq": typeof FaqRoute;
+  "/privacy": typeof PrivacyRoute;
+  "/write": typeof WriteRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/write': typeof WriteRoute
+  "/": typeof IndexRoute;
+  "/faq": typeof FaqRoute;
+  "/privacy": typeof PrivacyRoute;
+  "/write": typeof WriteRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/write': typeof WriteRoute
+  __root__: typeof rootRouteImport;
+  "/": typeof IndexRoute;
+  "/faq": typeof FaqRoute;
+  "/privacy": typeof PrivacyRoute;
+  "/write": typeof WriteRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/write'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/write'
-  id: '__root__' | '/' | '/write'
-  fileRoutesById: FileRoutesById
+  fileRoutesByFullPath: FileRoutesByFullPath;
+  fullPaths: "/" | "/faq" | "/privacy" | "/write";
+  fileRoutesByTo: FileRoutesByTo;
+  to: "/" | "/faq" | "/privacy" | "/write";
+  id: "__root__" | "/" | "/faq" | "/privacy" | "/write";
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  WriteRoute: typeof WriteRoute
+  IndexRoute: typeof IndexRoute;
+  FaqRoute: typeof FaqRoute;
+  PrivacyRoute: typeof PrivacyRoute;
+  WriteRoute: typeof WriteRoute;
 }
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/write': {
-      id: '/write'
-      path: '/write'
-      fullPath: '/write'
-      preLoaderRoute: typeof WriteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+    "/write": {
+      id: "/write";
+      path: "/write";
+      fullPath: "/write";
+      preLoaderRoute: typeof WriteRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/privacy": {
+      id: "/privacy";
+      path: "/privacy";
+      fullPath: "/privacy";
+      preLoaderRoute: typeof PrivacyRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/faq": {
+      id: "/faq";
+      path: "/faq";
+      fullPath: "/faq";
+      preLoaderRoute: typeof FaqRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/": {
+      id: "/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  FaqRoute: FaqRoute,
+  PrivacyRoute: PrivacyRoute,
   WriteRoute: WriteRoute,
-}
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
 
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
+import type { getRouter } from "./router.tsx";
+import type { createStart } from "@tanstack/react-start";
+declare module "@tanstack/react-start" {
   interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
+    ssr: true;
+    router: Awaited<ReturnType<typeof getRouter>>;
   }
 }

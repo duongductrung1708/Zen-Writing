@@ -160,34 +160,29 @@ function Home() {
             className="mb-8 flex flex-wrap gap-4 font-sans text-sm md:gap-6 md:text-base"
           >
             <li>
-              <a
-                tabIndex={1}
-                href="/faq"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to="/faq"
                 className="font-sans text-stone-700 transition-colors hover:text-stone-900"
               >
                 FAQ
-              </a>
+              </Link>
             </li>
             <li>
               <a
                 tabIndex={1}
-                href="mailto:inquiries@aurascribe.com?subject=%5BAuraScribe%5D&body=Got%20a%20question%20or%20comment%20about%20AuraScribe%3F%20Don't%20be%20shy%2C%20send%20an%20email!"
+                href="mailto:trungyna1708@gmail.com?subject=%5BZenWriting%5D&body=Got%20a%20question%20or%20comment%20about%20ZenWriting%3F%20Don't%20be%20shy%2C%20send%20an%20email!"
                 className="font-sans text-stone-700 transition-colors hover:text-stone-900"
               >
                 Contact
               </a>
             </li>
             <li>
-              <a
-                tabIndex={1}
-                href="/privacy"
-                target="_blank"
+              <Link
+                to="/privacy"
                 className="font-sans text-stone-700 transition-colors hover:text-stone-900"
               >
                 Privacy
-              </a>
+              </Link>
             </li>
           </ul>
 

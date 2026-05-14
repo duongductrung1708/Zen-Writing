@@ -250,7 +250,7 @@ function Writer() {
   const handleCloseViewer = useCallback(() => {
     // 1. Lưu lại index hiện tại trước khi reset
     const index = selectedImageIndex;
-    
+
     // 2. Reset độ zoom về bình thường
     setPanScale(1);
 
@@ -258,15 +258,19 @@ function Writer() {
     if (index >= 0 && images[index] && imagePositions[index]) {
       const imagePos = imagePositions[index];
       const imageSize = imageSizes[images[index].id] || { width: 300, height: 400 };
-      
+
       const galleryContainer = galleryContainerRef.current;
       if (galleryContainer) {
         const containerRect = galleryContainer.getBoundingClientRect();
-        
+
         // Lấy padding thực tế của container
         const innerContainer = galleryContainer.querySelector(".absolute");
-        const paddingLeft = innerContainer ? parseFloat(window.getComputedStyle(innerContainer).paddingLeft) || 12 : 12;
-        const paddingTop = innerContainer ? parseFloat(window.getComputedStyle(innerContainer).paddingTop) || 12 : 12;
+        const paddingLeft = innerContainer
+          ? parseFloat(window.getComputedStyle(innerContainer).paddingLeft) || 12
+          : 12;
+        const paddingTop = innerContainer
+          ? parseFloat(window.getComputedStyle(innerContainer).paddingTop) || 12
+          : 12;
 
         // Tính tâm của ảnh trong không gian canvas
         const imageCenterX = imagePos.x + paddingLeft + imageSize.width / 2;
@@ -274,8 +278,8 @@ function Writer() {
 
         // Tính tọa độ mới ở scale 1: Tâm màn hình - Tâm ảnh
         setPanPosition({
-          x: (containerRect.width / 2) - imageCenterX,
-          y: (containerRect.height / 2) - imageCenterY,
+          x: containerRect.width / 2 - imageCenterX,
+          y: containerRect.height / 2 - imageCenterY,
         });
       }
     }
@@ -283,7 +287,16 @@ function Writer() {
     // 4. Xóa ảnh đang chọn
     setSelectedImage(null);
     setSelectedImageIndex(-1);
-  }, [selectedImageIndex, images, imagePositions, imageSizes, setPanScale, setPanPosition, setSelectedImage, setSelectedImageIndex]);
+  }, [
+    selectedImageIndex,
+    images,
+    imagePositions,
+    imageSizes,
+    setPanScale,
+    setPanPosition,
+    setSelectedImage,
+    setSelectedImageIndex,
+  ]);
 
   // Handle navigation between images in viewer + canvas
   const handleChangeViewerIndex = useCallback(
